@@ -1,0 +1,98 @@
+/* Sentient Interface Styles - Using Tailwind where possible */
+
+:root {
+  --sentient-gradient: #6366f1, #8b5cf6, #ec4899;
+  --sentient-pulse-speed: 1s;
+  --sentient-sidebar-width: 320px;
+  --sentient-energy: 0;
+  --sentient-scroll-glow: 0;
+  --sentient-surface-glow: rgba(99, 102, 241, 0.12);
+  --sentient-text-contrast: 1;
+  --sentient-blur: 0px;
+}
+
+/* Living background - Keep for dynamic gradients */
+.sentient-container {
+  @apply relative;
+  background: linear-gradient(135deg, var(--sentient-gradient));
+  @apply transition-[background] duration-[800ms] ease-in-out;
+}
+
+/* Interface breathing */
+.sentient-breathe {
+  animation: sentient-breath var(--sentient-pulse-speed) ease-in-out infinite;
+}
+
+@keyframes sentient-breath {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(99, 102, 241, 0.15);
+  }
+  50% {
+    transform: scale(1.01);
+    box-shadow: 0 0 30px var(--sentient-surface-glow);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(99, 102, 241, 0.15);
+  }
+}
+
+/* Adaptive layout gravity */
+.sentient-sidebar {
+  width: var(--sentient-sidebar-width);
+  @apply transition-[width] duration-300 ease-in-out;
+}
+
+/* Mood morphing tokens - Using Tailwind */
+.sentient-surface {
+  @apply bg-white/60 backdrop-blur-lg;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.08);
+  backdrop-filter: blur(var(--sentient-blur, 8px));
+  @apply transition-[box-shadow,backdrop-filter] duration-500 ease-in-out;
+}
+
+.sentient-text {
+  filter: contrast(var(--sentient-text-contrast));
+}
+
+/* Whisper mode */
+body[data-sentient-mode="whisper"] .sentient-message {
+  @apply opacity-[0.86];
+}
+
+/* Predictive UI shift */
+body[data-sentient-mode="minimal"] .sentient-minimal {
+  @apply opacity-[0.85];
+  filter: saturate(0.9);
+}
+
+/* Energy scroll effect */
+.sentient-scroll-glow {
+  @apply relative;
+}
+
+.sentient-scroll-glow::after {
+  content: '';
+  @apply absolute inset-0 pointer-events-none;
+  background: radial-gradient(
+    circle at 50% 20%,
+    rgba(99, 102, 241, calc(var(--sentient-scroll-glow) * 0.4)),
+    transparent 70%
+  );
+  opacity: var(--sentient-scroll-glow);
+  @apply transition-opacity duration-200 ease-in-out;
+}
+
+/* Aura ring canvas overlay */
+.sentient-aura-wrapper {
+  @apply relative inline-flex items-center justify-center;
+}
+
+.sentient-aura-canvas {
+  @apply absolute -top-3 -left-3 z-[1];
+}
+
+.sentient-avatar {
+  @apply relative z-[2];
+}
