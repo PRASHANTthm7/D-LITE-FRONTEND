@@ -1,8 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useChatStore } from '../store/chatStore'
-import { usePresence } from '../contexts/PresenceContext'
 import { authAPI } from '../services/authService'
-import { useUXEngine } from '../uxEngine'
 import AuraAvatar from './ui/AuraAvatar'
 
 const getUserId = (user) => String(user?.id || user?._id || '')
@@ -10,17 +8,6 @@ const getUserName = (user) => user?.username || user?.name || 'Unknown User'
 
 const UsersList = memo(() => {
   const { users, selectedUser, setSelectedUser, onlineUsers, conversations } = useChatStore()
-  const { getPresence } = usePresence()
-  const { signals } = useUXEngine()
-  const {
-    prioritizedChats,
-    recentChats,
-    frequentChats,
-    spacing,
-    shouldShowSearch,
-    nextPredictedChat,
-    trackChatAccess,
-  } = signals
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -102,11 +89,8 @@ const UsersList = memo(() => {
   }, [users, sortUsers, isOnline])
 
   const quickSwitchUsers = useMemo(() => {
-    return recentChats
-      .map((chatId) => userById.get(String(chatId)))
-      .filter((user) => user && getUserId(user) !== selectedUserId)
-      .slice(0, 4)
-  }, [recentChats, selectedUserId, userById])
+    return []
+  }, [])
 
   const handleSearch = async (query) => {
     setSearchQuery(query)
@@ -136,8 +120,6 @@ const UsersList = memo(() => {
     if (selectedUserId !== userId) {
       setSelectedUser(user)
     }
-
-    trackChatAccess(userId)
     setSearchQuery('')
     setSearchResults([])
     clearHoverSwitchTimeout()
@@ -153,19 +135,14 @@ const UsersList = memo(() => {
     }, 450)
   }, [clearHoverSwitchTimeout, handleSelectUser, selectedUserId])
 
-  const spacingClass = useMemo(() => {
-    if (spacing === 'compact') return 'gap-2'
-    if (spacing === 'relaxed') return 'gap-4'
-    return 'gap-3'
-  }, [spacing])
+  const spacingClass = useMemo(() => 'gap-3', [])
 
   const renderUser = (user) => {
-    const presence = getPresence(user.id || user._id)
     const userId = getUserId(user)
     const isUserOnline = isOnline(userId)
     const isSelected = selectedUserId === userId
     const unreadCount = conversations[userId]?.unread_count || 0
-    const isPredicted = nextPredictedChat && String(nextPredictedChat) === userId
+    const isPredicted = false
 
     return (
       <button
@@ -174,9 +151,7 @@ const UsersList = memo(() => {
         className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 relative group ux-touch-target ${
           isSelected
             ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 shadow-sm'
-            : isPredicted
-              ? 'bg-indigo-50/70 border border-indigo-100 hover:border-indigo-200/60 hover:shadow-sm'
-              : 'bg-white/50 hover:bg-white/80 border border-transparent hover:border-gray-200/60 hover:shadow-sm'
+            : 'bg-white/50 hover:bg-white/80 border border-transparent hover:border-gray-200/60 hover:shadow-sm'
         }`}
         onMouseEnter={() => queueHoverSwitch(user)}
         onMouseLeave={clearHoverSwitchTimeout}
@@ -186,10 +161,8 @@ const UsersList = memo(() => {
             userId={userId}
             avatarUrl={user.avatarUrl}
             name={getUserName(user)}
-            auraColor={presence?.auraColor}
             size="md"
             online={isUserOnline}
-            heatLevel={presence?.heatLevel}
           />
           {unreadCount > 0 && (
             <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-md ring-2 ring-white">
@@ -205,17 +178,8 @@ const UsersList = memo(() => {
             {isUserOnline && (
               <span className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500"></span>
             )}
-            {isPredicted && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600 font-semibold">
-                Next
-              </span>
-            )}
           </div>
-          {presence?.state ? (
-            <div className="text-xs text-gray-600 truncate">
-              {presence.state}
-            </div>
-          ) : !isUserOnline ? (
+          {!isUserOnline ? (
             <div className="text-xs text-gray-400 flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <circle cx="10" cy="10" r="8" opacity="0.3"/>
