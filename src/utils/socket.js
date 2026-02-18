@@ -27,7 +27,56 @@ class SocketManager {
     }
 
     // Use service config for socket gateway URL
-    const SOCKET_URL = SERVICE_CONFIG.socket.baseURL
+    let SOCKET_URL = SERVICE_CONFIG.socket.baseURL
+
+    // Normalize and validate the socket URL
+    if (!SOCKET_URL) {
+      logger.error('Socket Gateway URL is not configured')
+      return Promise.reject(new Error('Socket Gateway URL is not configured'))
+    }
+
+    // Additional normalization in case envValidator didn't catch everything
+    // Additional normalization: decode URL encoding and remove any remaining issues
+    try {
+      // Decode URL encoding (e.g., %20 -> space)
+      SOCKET_URL = decodeURIComponent(SOCKET_URL);
+    } catch (e) {
+      // If decode fails, continue with original URL
+      logger.warn('Failed to decode URL, using as-is', { url: SOCKET_URL });
+    }
+    
+    // Remove all commas, spaces, URL-encoded characters, and trailing slashes
+    SOCKET_URL = SOCKET_URL.trim()
+      .replace(/[,\s%]+/g, '') // Remove commas, spaces, and % characters
+      .replace(/%[0-9A-Fa-f]{2}/g, '') // Remove any remaining URL-encoded sequences
+      .replace(/\/+$/, '') // Remove trailing slashes
+    
+    // Extract just the domain part (remove any path that might have been incorrectly included)
+    // Match: protocol://domain:port or protocol://domain
+    const urlMatch = SOCKET_URL.match(/^(https?:\/\/)?([^\/\s,]+)/);
+    if (urlMatch) {
+      const protocol = urlMatch[1] || '';
+      const domain = urlMatch[2];
+      SOCKET_URL = protocol + domain;
+    }
+    
+    // Ensure URL has a protocol (fallback if envValidator didn't add it)
+    if (!SOCKET_URL.match(/^https?:\/\//)) {
+      // If no protocol, determine based on environment
+      const isProduction = typeof window !== 'undefined' && window.location.protocol === 'https:' || 
+                          import.meta.env.PROD || 
+                          SOCKET_URL.includes('railway.app') ||
+                          SOCKET_URL.includes('netlify.app') ||
+                          SOCKET_URL.includes('vercel.app') ||
+                          SOCKET_URL.includes('render.com')
+      SOCKET_URL = `${isProduction ? 'https://' : 'http://'}${SOCKET_URL}`
+    }
+
+    // Log the normalized URL for debugging
+    logger.info('Socket Gateway URL normalized', { 
+      original: SERVICE_CONFIG.socket.baseURL, 
+      normalized: SOCKET_URL 
+    })
 
     // Create connection promise with timeout
     this.connectingPromise = new Promise((resolve, reject) => {
