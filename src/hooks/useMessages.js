@@ -20,16 +20,17 @@ export function useMessages() {
       const groupId = selectedGroup?.id || selectedGroup?._id
 
       // Send via socket
+      // Note: sender_id is NOT sent - backend extracts it from JWT token (auth service)
       socketManager.sendMessage({
-        sender_id: user.id || user._id,
         receiver_id: receiverId,
         group_id: groupId,
         content: content.trim(),
       })
 
       // Also send via API
+      // Note: sender_id is NOT sent - backend extracts it from JWT token (auth service)
       await chatAPI.sendMessage(
-        user.id || user._id,
+        null, // senderId - backend will extract from JWT token
         receiverId,
         content.trim(),
         groupId

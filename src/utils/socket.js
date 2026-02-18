@@ -107,10 +107,6 @@ class SocketManager {
 
         logger.info('Connecting to Socket Gateway', { url: SOCKET_URL, hasToken: !!token, tokenLength: token?.length })
         
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/8f8a6f53-4334-40cc-9854-84abdce895fb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'socket.js:59',message:'Socket connection attempt',data:{url:SOCKET_URL,hasToken:!!token,tokenLength:token?.length,tokenPreview:token?`${token.substring(0,10)}...${token.substring(token.length-5)}`:'missing'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-        
         // Disable socket.io's automatic reconnection during initial connection
         // We'll handle reconnection manually
         this.socket = io(SOCKET_URL, {
@@ -128,9 +124,6 @@ class SocketManager {
           if (hasResolved) return
           clearTimeout(connectionTimeout)
           logger.info('Socket connected successfully')
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/8f8a6f53-4334-40cc-9854-84abdce895fb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'socket.js:71',message:'Socket connected successfully',data:{socketId:this.socket?.id},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           this.isConnected = true
           this.reconnectAttempts = 0
           this.connectingPromise = null
@@ -169,9 +162,6 @@ class SocketManager {
         connectErrorHandler = (error) => {
           if (hasResolved) return
           logger.warn('Socket connection error', { error: error.message })
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/8f8a6f53-4334-40cc-9854-84abdce895fb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'socket.js:110',message:'Socket connection error',data:{error:error?.message,errorType:error?.type,errorData:error?.data,reconnectAttempts:this.reconnectAttempts},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-          // #endregion
           this.reconnectAttempts++
           
           // Only reject after max attempts

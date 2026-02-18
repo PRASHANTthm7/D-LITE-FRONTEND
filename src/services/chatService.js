@@ -33,9 +33,10 @@ api.interceptors.response.use(
 
 export const chatAPI = {
   // Messages
+  // Note: senderId is not sent - backend extracts it from JWT token (auth service)
   sendMessage: async (senderId, receiverId, content, groupId = null, expiresAt = null) => {
     const response = await api.post('/api/messages', {
-      sender_id: senderId,
+      // sender_id is NOT included - backend extracts from authenticated JWT token
       receiver_id: receiverId,
       content,
       group_id: groupId,

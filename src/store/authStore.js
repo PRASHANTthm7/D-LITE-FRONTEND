@@ -75,6 +75,15 @@ export const useAuthStore = create((set, get) => ({
     // Disconnect socket before logout
     socketManager.disconnect()
     localStorage.removeItem('token')
+    
+    // Clear chat store data on logout
+    // Import chatStore dynamically to avoid circular dependency
+    import('./chatStore').then((module) => {
+      module.useChatStore.getState().clearAllChatData()
+    }).catch(err => {
+      console.warn('Could not clear chat store on logout:', err)
+    })
+    
     set({ 
       user: null, 
       token: null, 

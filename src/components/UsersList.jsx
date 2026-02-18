@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useChatStore } from '../store/chatStore'
 import { authAPI } from '../services/authService'
 import AuraAvatar from './ui/AuraAvatar'
@@ -12,18 +12,8 @@ const UsersList = memo(() => {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
-  const hoverSwitchTimeoutRef = useRef(null)
 
   const selectedUserId = getUserId(selectedUser)
-
-  const clearHoverSwitchTimeout = useCallback(() => {
-    if (hoverSwitchTimeoutRef.current) {
-      clearTimeout(hoverSwitchTimeoutRef.current)
-      hoverSwitchTimeoutRef.current = null
-    }
-  }, [])
-
-  useEffect(() => clearHoverSwitchTimeout, [clearHoverSwitchTimeout])
 
   const isOnline = useCallback(
     (userId) => onlineUsers.has(userId) || onlineUsers.has(String(userId)),
@@ -132,18 +122,7 @@ const UsersList = memo(() => {
     }
     setSearchQuery('')
     setSearchResults([])
-    clearHoverSwitchTimeout()
-  }, [clearHoverSwitchTimeout, selectedUserId, users, setUsers, setSelectedUser])
-
-  const queueHoverSwitch = useCallback((user) => {
-    const userId = getUserId(user)
-    if (!userId || userId === selectedUserId) return
-
-    clearHoverSwitchTimeout()
-    hoverSwitchTimeoutRef.current = setTimeout(() => {
-      handleSelectUser(user)
-    }, 450)
-  }, [clearHoverSwitchTimeout, handleSelectUser, selectedUserId])
+  }, [selectedUserId, users, setUsers, setSelectedUser])
 
   const spacingClass = useMemo(() => 'gap-3', [])
 
@@ -163,8 +142,6 @@ const UsersList = memo(() => {
             ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 shadow-sm'
             : 'bg-white/50 hover:bg-white/80 border border-transparent hover:border-gray-200/60 hover:shadow-sm'
         }`}
-        onMouseEnter={() => queueHoverSwitch(user)}
-        onMouseLeave={clearHoverSwitchTimeout}
       >
         <div className="relative flex-shrink-0">
           <AuraAvatar
@@ -251,8 +228,6 @@ const UsersList = memo(() => {
                   key={userId}
                   type="button"
                   onClick={() => handleSelectUser(user)}
-                  onMouseEnter={() => queueHoverSwitch(user)}
-                  onMouseLeave={clearHoverSwitchTimeout}
                   className="px-2.5 py-1.5 rounded-lg bg-white/80 hover:bg-white border border-indigo-100 text-xs text-gray-700 transition-all ux-touch-target"
                 >
                   {getUserName(user)}

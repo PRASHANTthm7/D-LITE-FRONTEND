@@ -32,32 +32,69 @@ const MessageInput = ({ onSendMessage }) => {
     const trimmedMessage = message.trim()
     if (!trimmedMessage || !currentUserId || (!receiverId && !groupId)) return
 
+    const { addMessage } = useChatStore.getState()
+
+    // Create optimistic message for immediate UI update
+    const optimisticMessage = {
+      _id: `temp_${Date.now()}`,
+      id: `temp_${Date.now()}`,
+      sender_id: currentUserId,
+      receiver_id: receiverId,
+      group_id: groupId,
+      content: trimmedMessage,
+      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      read: false,
+      message_type: 'text',
+      chat_type: groupId ? 'group' : 'private',
+    }
+
+    // Add message immediately to store for instant UI update
+    addMessage(optimisticMessage)
+
+    // Clear input immediately
+    setMessage('')
+    setIsTyping(false)
+    emitTypingStatus(false)
+
     try {
-      // Send via socket
+      // Send via socket for real-time delivery
+      // Note: sender_id is NOT sent - backend extracts it from JWT token
       socketManager.sendMessage({
-        sender_id: currentUserId,
         receiver_id: receiverId,
         group_id: groupId,
         content: trimmedMessage,
       })
 
-      // Also send via API for persistence
-      await chatAPI.sendMessage(
-        currentUserId,
+      // Also send via API for database persistence
+      // Note: sender_id is NOT sent - backend extracts it from JWT token
+      const savedMessage = await chatAPI.sendMessage(
+        null, // senderId - backend will extract from JWT token
         receiverId,
         trimmedMessage,
         groupId
       )
 
-      setMessage('')
-      setIsTyping(false)
-      emitTypingStatus(false)
+      // Replace optimistic message with saved message from database
+      const { messages, setMessages } = useChatStore.getState()
+      const updatedMessages = messages.map(msg => 
+        msg._id === optimisticMessage._id || msg.id === optimisticMessage.id
+          ? { ...savedMessage, _id: savedMessage._id || savedMessage.id, id: savedMessage.id || savedMessage._id }
+          : msg
+      )
+      setMessages(updatedMessages)
 
       if (onSendMessage) {
         onSendMessage(trimmedMessage)
       }
     } catch (error) {
       console.error('Error sending message:', error)
+      // Remove optimistic message on error
+      const { messages, setMessages } = useChatStore.getState()
+      const updatedMessages = messages.filter(
+        msg => msg._id !== optimisticMessage._id && msg.id !== optimisticMessage.id
+      )
+      setMessages(updatedMessages)
     }
   }, [currentUserId, emitTypingStatus, groupId, message, onSendMessage, receiverId])
 
@@ -103,7 +140,22 @@ const MessageInput = ({ onSendMessage }) => {
   }, [emitTypingStatus])
 
   return (
-    <div className="flex items-end gap-3">
+    <div className="flex items-end gap-3 px-1">
+      {/* Emoji/Attachment button (optional) */}
+      <button
+        className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/80 hover:bg-white border border-gray-200/60 flex items-center justify-center transition-all duration-200 hover:shadow-md group"
+        title="Add emoji or attachment"
+      >
+        <svg 
+          className="w-5 h-5 text-gray-500 group-hover:text-indigo-500 transition-colors" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
       <div className="flex-1 relative">
         <textarea
           ref={inputRef}
@@ -115,26 +167,42 @@ const MessageInput = ({ onSendMessage }) => {
           }}
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
-          className="w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-gray-200/60 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 text-gray-800 placeholder-gray-400 transition-all shadow-sm"
+          className="w-full px-4 py-3 bg-white/95 backdrop-blur-sm border-2 border-gray-200/60 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 text-gray-800 placeholder-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:shadow-lg"
           rows={2}
-          style={{ minHeight: '48px', maxHeight: '160px' }}
+          style={{ minHeight: '52px', maxHeight: '160px' }}
         />
+        {message.length > 0 && (
+          <div className="absolute bottom-2 right-3 text-xs text-gray-400">
+            {message.length}
+          </div>
+        )}
       </div>
 
       <button
         onClick={handleSend}
         disabled={!message.trim()}
-        className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center group"
+        className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white rounded-2xl font-medium hover:from-indigo-600 hover:via-indigo-700 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center group"
         title="Send message"
       >
-        <svg 
-          className="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-        </svg>
+        {message.trim() ? (
+          <svg 
+            className="w-5 h-5 transform group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+        ) : (
+          <svg 
+            className="w-5 h-5 text-white/60" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+        )}
       </button>
     </div>
   )

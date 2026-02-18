@@ -17,7 +17,10 @@ const ChatPage = () => {
   const {
     users,
     selectedUser,
+    selectedGroup,
     messages,
+    onlineUsers,
+    typingUsers,
     setUsers,
     setMessages,
     setConversations,
@@ -59,21 +62,53 @@ const ChatPage = () => {
           },
         })
 
-        // Setup message listener
-        socketManager.onMessage(async (message) => {
-          addMessage(message)
-          
-          // Refresh conversations to update unread counts if this is a message for us
-          const currentUserId = user.id || user._id
-          if (message.receiver_id === currentUserId) {
-            try {
-              const conversationsData = await chatAPI.getConversations(currentUserId)
-              setConversations(conversationsData || [])
-            } catch (error) {
-              console.error('Error refreshing conversations:', error)
-            }
-          }
-        })
+              // Setup message listener
+              socketManager.onMessage(async (receivedMessage) => {
+                const currentUserId = user.id || user._id
+                const selectedUserId = selectedUser?.id || selectedUser?._id
+                const selectedGroupId = selectedGroup?.id || selectedGroup?._id
+                
+                // Check if message is for group or private chat
+                const isGroupMessage = !!receivedMessage.group_id
+                
+                // Only add message if it's for the currently selected conversation
+                let isForCurrentConversation = false
+                
+                if (isGroupMessage) {
+                  // For group messages: check if it's for the currently selected group
+                  isForCurrentConversation = receivedMessage.group_id === selectedGroupId
+                } else {
+                  // For private messages: check if it's between current user and selected user
+                  isForCurrentConversation = 
+                    (receivedMessage.receiver_id === currentUserId && receivedMessage.sender_id === selectedUserId) ||
+                    (receivedMessage.sender_id === currentUserId && receivedMessage.receiver_id === selectedUserId)
+                }
+                
+                // Add message if it's for current conversation or if no conversation is selected (for notifications)
+                if (isForCurrentConversation || (!selectedUser && !selectedGroup)) {
+                  // Check if message already exists (avoid duplicates)
+                  const { messages } = useChatStore.getState()
+                  const messageExists = messages.some(
+                    msg => (msg._id === receivedMessage._id || msg.id === receivedMessage.id) ||
+                           (msg._id === receivedMessage._id || msg.id === receivedMessage.id)
+                  )
+                  
+                  if (!messageExists) {
+                    addMessage(receivedMessage)
+                  }
+                }
+
+                // Refresh conversations to update unread counts if this is a message for us
+                // For group messages, all members receive them, so we don't mark as read automatically
+                if (!isGroupMessage && receivedMessage.receiver_id === currentUserId) {
+                  try {
+                    const conversationsData = await chatAPI.getConversations(currentUserId)
+                    setConversations(conversationsData || [])
+                  } catch (error) {
+                    console.error('Error refreshing conversations:', error)
+                  }
+                }
+              })
 
         // Fetch conversations first
         const currentUserId = user.id || user._id
@@ -143,23 +178,74 @@ const ChatPage = () => {
       // Note: Don't disconnect socket here as DashboardPage might need it
       // Socket should only disconnect on logout
     }
-  }, [token, user, navigate, setUsers, setConversations, updateOnlineUsers, addOnlineUser, removeOnlineUser, addMessage, location])
+  }, [token, user, navigate, setUsers, setConversations, updateOnlineUsers, addOnlineUser, removeOnlineUser, addMessage, location, selectedUser, selectedGroup])
 
-  // Load messages when user is selected
+  // Load messages when user or group is selected - ALWAYS load from database
   useEffect(() => {
     const loadMessages = async () => {
-      if (!selectedUser || !user) return
+      // Handle group messages
+      if (selectedGroup && user) {
+        try {
+          const groupId = selectedGroup.id || selectedGroup._id
+          
+          if (!groupId) {
+            console.warn('Missing group ID for loading messages')
+            return
+          }
+
+          // Join group room for real-time updates
+          socketManager.joinGroup(groupId)
+
+          // Always fetch messages from database to ensure persistence
+          const data = await chatAPI.getGroupMessages(groupId)
+          
+          // Sort messages by timestamp to ensure correct order
+          const sortedMessages = (data.messages || []).sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.createdAt || 0).getTime()
+            const timeB = new Date(b.timestamp || b.createdAt || 0).getTime()
+            return timeA - timeB
+          })
+          
+          setMessages(sortedMessages)
+        } catch (error) {
+          console.error('Error loading group messages:', error)
+          setMessages([])
+        }
+        return
+      }
+
+      // Handle private messages
+      if (!selectedUser || !user) {
+        // Clear messages if no user selected
+        setMessages([])
+        return
+      }
 
       try {
         const currentUserId = user.id || user._id
         const selectedUserId = selectedUser.id || selectedUser._id
         
-        const data = await chatAPI.getMessages(currentUserId, selectedUserId)
-        setMessages(data.messages || [])
+        if (!currentUserId || !selectedUserId) {
+          console.warn('Missing user IDs for loading messages')
+          return
+        }
 
-        // Mark unread messages as read
-        const unreadMessages = (data.messages || []).filter(
-          msg => msg.receiver_id === currentUserId && !msg.read
+        // Always fetch messages from database to ensure persistence
+        // This ensures messages are loaded even after logout/login
+        const data = await chatAPI.getMessages(currentUserId, selectedUserId)
+        
+        // Sort messages by timestamp to ensure correct order
+        const sortedMessages = (data.messages || []).sort((a, b) => {
+          const timeA = new Date(a.timestamp || a.createdAt || 0).getTime()
+          const timeB = new Date(b.timestamp || b.createdAt || 0).getTime()
+          return timeA - timeB
+        })
+        
+        setMessages(sortedMessages)
+
+        // Mark unread messages as read (only for private messages)
+        const unreadMessages = sortedMessages.filter(
+          msg => (msg.receiver_id === currentUserId || msg.receiverId === currentUserId) && !msg.read
         )
         
         for (const msg of unreadMessages) {
@@ -172,16 +258,22 @@ const ChatPage = () => {
 
         // Refresh conversations to update unread counts
         if (unreadMessages.length > 0) {
-          const conversationsData = await chatAPI.getConversations(currentUserId)
-          setConversations(conversationsData || [])
+          try {
+            const conversationsData = await chatAPI.getConversations(currentUserId)
+            setConversations(conversationsData || [])
+          } catch (error) {
+            console.error('Error refreshing conversations:', error)
+          }
         }
       } catch (error) {
         console.error('Error loading messages:', error)
+        // Set empty array on error to show no messages
+        setMessages([])
       }
     }
 
     loadMessages()
-  }, [selectedUser, user, setMessages, setConversations])
+  }, [selectedUser, selectedGroup, user, setMessages, setConversations])
 
   if (loading) {
     return (
@@ -196,14 +288,48 @@ const ChatPage = () => {
       sidebarContent={<UsersList />}
       chatHeader={
         selectedUser ? (
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-gray-900 text-base">
-                {selectedUser.username || selectedUser.name}
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <AuraAvatar
+                  userId={selectedUser.id || selectedUser._id}
+                  avatarUrl={selectedUser.avatarUrl}
+                  name={selectedUser.username || selectedUser.name}
+                  size="md"
+                  online={onlineUsers.has(selectedUser.id || selectedUser._id)}
+                />
               </div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                Direct message
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="font-semibold text-gray-900 text-base">
+                    {selectedUser.username || selectedUser.name}
+                  </div>
+                  {onlineUsers.has(selectedUser.id || selectedUser._id) && (
+                    <span className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                  {onlineUsers.has(selectedUser.id || selectedUser._id) ? (
+                    <>
+                      <span className="text-green-500">Online</span>
+                      <span>•</span>
+                      <span>Direct message</span>
+                    </>
+                  ) : (
+                    <span>Direct message</span>
+                  )}
+                </div>
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                className="p-2 rounded-lg hover:bg-gray-100/80 transition-colors"
+                title="More options"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </button>
             </div>
           </div>
         ) : (

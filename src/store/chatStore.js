@@ -10,6 +10,7 @@ export const useChatStore = create((set, get) => ({
   selectedGroup: null,
   onlineUsers: new Set(),
   conversations: {}, // Map of userId -> {unread_count, last_message}
+  typingUsers: [], // Array of users currently typing
 
   setUsers: (users) => set({ users }),
   setGroups: (groups) => set({ groups }),
@@ -77,5 +78,35 @@ export const useChatStore = create((set, get) => ({
       selectedGroup: null,
       messages: [],
     })
+  },
+
+  // Clear all chat data (used on logout)
+  clearAllChatData: () => {
+    set({
+      users: [],
+      groups: [],
+      messages: [],
+      selectedUser: null,
+      selectedGroup: null,
+      onlineUsers: new Set(),
+      conversations: {},
+      typingUsers: [],
+    })
+  },
+
+  setTypingUsers: (users) => set({ typingUsers: users }),
+  
+  addTypingUser: (user) => {
+    set((state) => {
+      const exists = state.typingUsers.some(u => (u.id || u._id) === (user.id || user._id))
+      if (exists) return state
+      return { typingUsers: [...state.typingUsers, user] }
+    })
+  },
+
+  removeTypingUser: (userId) => {
+    set((state) => ({
+      typingUsers: state.typingUsers.filter(u => (u.id || u._id) !== userId)
+    }))
   },
 }))

@@ -14,18 +14,18 @@ const ChatPanel = memo(({
     >
       {/* Header */}
       {header && (
-        <div className="px-6 py-4 border-b border-gray-200/60 bg-white/40 backdrop-blur-sm">
+        <div className="px-6 py-4 border-b border-gray-200/60 bg-white/60 backdrop-blur-md shadow-sm sticky top-0 z-10">
           {header}
         </div>
       )}
 
       {/* Messages */}
       <div
-        className="flex-1 overflow-y-auto custom-scrollbar"
+        className="flex-1 overflow-y-auto custom-scrollbar bg-gradient-to-b from-transparent via-indigo-50/10 to-purple-50/10"
         style={{ padding: 'calc(1.5rem * var(--ux-spacing-multiplier))' }}
       >
         <div
-          className="max-w-4xl mx-auto flex flex-col"
+          className="max-w-4xl mx-auto flex flex-col min-h-full justify-end"
           style={{ gap: 'var(--ux-chat-gap)' }}
         >
           {children}
@@ -35,7 +35,7 @@ const ChatPanel = memo(({
       {/* Input */}
       {input && (
         <div
-          className="px-6 py-4 border-t border-gray-200/60 bg-white/40 backdrop-blur-sm ux-input-container"
+          className="px-6 py-4 border-t border-gray-200/60 bg-white/60 backdrop-blur-md shadow-lg sticky bottom-0 z-10 ux-input-container"
           style={{ paddingTop: 'calc(1rem * var(--ux-spacing-multiplier))' }}
         >
           <div className="max-w-4xl mx-auto">

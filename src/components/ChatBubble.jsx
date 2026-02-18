@@ -30,7 +30,11 @@ const ChatBubble = memo(({
   return (
     <button
       onClick={handleClick}
-      className="w-full flex items-center gap-3 p-4 bg-white/80 hover:bg-white rounded-xl border border-gray-200/60 hover:border-indigo-300 transition-all duration-200 shadow-sm hover:shadow-md group"
+      className={`w-full flex items-center gap-4 p-4 bg-white/90 hover:bg-white rounded-xl border transition-all duration-200 shadow-sm hover:shadow-lg group ${
+        unreadCount > 0 
+          ? 'border-indigo-300/60 hover:border-indigo-400 bg-indigo-50/30' 
+          : 'border-gray-200/60 hover:border-gray-300'
+      }`}
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
@@ -41,8 +45,11 @@ const ChatBubble = memo(({
           size="md"
           online={isOnline}
         />
+        {isOnline && (
+          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+        )}
         {unreadCount > 0 && (
-          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-md ring-2 ring-white">
+          <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-full min-w-[22px] h-5 flex items-center justify-center px-1.5 shadow-lg ring-2 ring-white animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </div>
         )}
@@ -50,35 +57,44 @@ const ChatBubble = memo(({
 
       {/* Message Content */}
       <div className="flex-1 text-left min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <span className="font-semibold text-gray-800 text-sm truncate">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className={`font-semibold text-sm truncate ${
+            unreadCount > 0 ? 'text-gray-900' : 'text-gray-700'
+          }`}>
             {userName}
           </span>
           {formattedTime && (
-            <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+            <span className={`text-xs flex-shrink-0 ml-2 ${
+              unreadCount > 0 ? 'text-indigo-600 font-medium' : 'text-gray-400'
+            }`}>
               {formattedTime}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-gray-600 truncate flex-1">
+          <p className={`text-sm truncate flex-1 ${
+            unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-600'
+          }`}>
             {messagePreview}
           </p>
-          {isOnline && (
-            <span className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500"></span>
-          )}
         </div>
       </div>
 
       {/* Arrow indicator */}
-      <svg
-        className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
+      <div className="flex-shrink-0">
+        {unreadCount > 0 ? (
+          <div className="w-2 h-2 bg-indigo-500 rounded-full group-hover:scale-125 transition-transform"></div>
+        ) : (
+          <svg
+            className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        )}
+      </div>
     </button>
   )
 })
