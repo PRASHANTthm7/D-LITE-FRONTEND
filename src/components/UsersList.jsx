@@ -7,7 +7,7 @@ const getUserId = (user) => String(user?.id || user?._id || '')
 const getUserName = (user) => user?.username || user?.name || 'Unknown User'
 
 const UsersList = memo(() => {
-  const { users, selectedUser, setSelectedUser, onlineUsers, conversations } = useChatStore()
+  const { users, selectedUser, setSelectedUser, setUsers, onlineUsers, conversations } = useChatStore()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -119,13 +119,21 @@ const UsersList = memo(() => {
     const userId = getUserId(user)
     if (!userId) return
 
+    // Add user to users list if not already present
+    const userExists = users.some(u => getUserId(u) === userId)
+    
+    if (!userExists) {
+      // Add new user to the list
+      setUsers([...users, user])
+    }
+
     if (selectedUserId !== userId) {
       setSelectedUser(user)
     }
     setSearchQuery('')
     setSearchResults([])
     clearHoverSwitchTimeout()
-  }, [clearHoverSwitchTimeout, selectedUserId, setSelectedUser])
+  }, [clearHoverSwitchTimeout, selectedUserId, users, setUsers, setSelectedUser])
 
   const queueHoverSwitch = useCallback((user) => {
     const userId = getUserId(user)

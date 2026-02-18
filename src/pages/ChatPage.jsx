@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useChatStore } from '../store/chatStore'
 import { socketManager } from '../utils/socket'
@@ -12,6 +12,7 @@ import MessageInput from '../components/MessageInput'
 
 const ChatPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, token, logout } = useAuthStore()
   const {
     users,
@@ -20,6 +21,7 @@ const ChatPage = () => {
     setUsers,
     setMessages,
     setConversations,
+    setSelectedUser,
     addMessage,
     updateOnlineUsers,
     addOnlineUser,
@@ -35,9 +37,16 @@ const ChatPage = () => {
 
     const setupSocket = async () => {
       try {
-        await socketManager.connect(token)
+        // Connect socket (will reuse existing connection if available)
+        try {
+          await socketManager.connect(token)
+        } catch (connectError) {
+          console.error('Socket connection failed:', connectError)
+          // Continue with setup even if socket connection fails
+          // User can still view conversations, just won't get real-time updates
+        }
 
-        // Setup presence tracking
+        // Setup presence tracking (will skip if already setup)
         socketManager.setupPresenceTracking({
           onOnlineUsersUpdate: (userIds) => {
             updateOnlineUsers(userIds)
@@ -77,11 +86,10 @@ const ChatPage = () => {
         }
         setConversations(conversationsData)
 
-        // Fetch only users from conversations (privacy: don't show all users)
+        // Fetch user details for conversation partners
         const conversationUserIds = conversationsData.map(conv => conv.user_id)
         
         if (conversationUserIds.length > 0) {
-          // Fetch user details for conversation partners
           const userDetailsPromises = conversationUserIds.map(userId => 
             authAPI.getUser(userId).catch(err => {
               console.error(`Error fetching user ${userId}:`, err)
@@ -96,6 +104,30 @@ const ChatPage = () => {
           setUsers([])
         }
 
+        // Handle pre-selected user from navigation state
+        const selectedUserId = location.state?.selectedUserId
+        if (selectedUserId) {
+          // Check if user is already in the list
+          const existingUser = users.find(u => (u.id || u._id) === selectedUserId)
+          if (existingUser) {
+            setSelectedUser(existingUser)
+          } else {
+            // Fetch user if not in list
+            try {
+              const userData = await authAPI.getUser(selectedUserId)
+              if (userData && userData.user) {
+                const newUser = userData.user
+                setUsers([...users, newUser])
+                setSelectedUser(newUser)
+              }
+            } catch (error) {
+              console.error('Error fetching selected user:', error)
+            }
+          }
+          // Clear the state to avoid re-selecting on re-render
+          navigate(location.pathname, { replace: true, state: {} })
+        }
+
         setLoading(false)
       } catch (error) {
         console.error('Socket setup error:', error)
@@ -106,9 +138,12 @@ const ChatPage = () => {
     setupSocket()
 
     return () => {
+      // Cleanup message listener
       socketManager.offMessage()
+      // Note: Don't disconnect socket here as DashboardPage might need it
+      // Socket should only disconnect on logout
     }
-  }, [token, user, navigate, setUsers, setConversations, updateOnlineUsers, addOnlineUser, removeOnlineUser, addMessage])
+  }, [token, user, navigate, setUsers, setConversations, updateOnlineUsers, addOnlineUser, removeOnlineUser, addMessage, location])
 
   // Load messages when user is selected
   useEffect(() => {
@@ -146,7 +181,7 @@ const ChatPage = () => {
     }
 
     loadMessages()
-  }, [selectedUser, user, setMessages])
+  }, [selectedUser, user, setMessages, setConversations])
 
   if (loading) {
     return (

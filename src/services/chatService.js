@@ -58,17 +58,7 @@ export const chatAPI = {
     return response.data
   },
 
-  // Users
-  getUsers: async () => {
-    const response = await api.get('/api/users')
-    return response.data
-  },
-
-  getUser: async (userId) => {
-    const response = await api.get(`/api/users/${userId}`)
-    return response.data
-  },
-
+  // Conversations
   getConversations: async (userId) => {
     const response = await api.get(`/api/conversations/${userId}`)
     return response.data
