@@ -46,29 +46,19 @@ const HomePage = () => {
       description: 'Instant messaging with WebSocket technology for seamless conversations',
     },
     {
-      icon: '✨',
-      title: 'Sentient Interface',
-      description: 'AI-driven interface that adapts to room mood and energy levels',
-    },
-    {
       icon: '🔒',
       title: 'Secure & Private',
       description: 'End-to-end encryption and privacy-focused architecture',
     },
     {
-      icon: '🎨',
-      title: 'Visual Identity',
-      description: 'Customizable avatars, auras, and personal themes',
+      icon: '👥',
+      title: 'User Management',
+      description: 'Easy user search and conversation management',
     },
     {
-      icon: '🌊',
-      title: 'quntam Rooms',
-      description: 'Conscious spaces that evolve with group dynamics',
-    },
-    {
-      icon: '🤖',
-      title: 'AI Insights',
-      description: 'Smart suggestions and mood analysis powered by AI',
+      icon: '⚡',
+      title: 'Fast & Reliable',
+      description: 'Lightning-fast messaging with real-time updates',
     },
   ]
 
@@ -274,17 +264,17 @@ const HomePage = () => {
       <section className="relative z-10 px-6 py-20 md:py-32">
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-block mb-6 px-4 py-2 bg-white/70 backdrop-blur-md rounded-full border-2 border-indigo-400/50 text-sm font-medium text-gray-800 shadow-lg ring-1 ring-indigo-500/20">
-            ✨ Sentient Chat Experience
+            💬 Real-time Chat Experience
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
             Chat with
             <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Consciousness
+              Confidence
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Experience messaging reimagined with AI-driven sentient interfaces, 
-            quntam room consciousness, and emotionally adaptive design.
+            Experience messaging reimagined with real-time WebSocket technology, 
+            secure conversations, and a modern, intuitive interface.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {!isAuthenticated && (
@@ -356,21 +346,21 @@ const HomePage = () => {
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <div className="inline-block mb-4 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                  Sentient Interface
+                  Modern Interface
                 </div>
                 <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                  Experience Adaptive Design
+                  Experience Clean Design
                 </h2>
                 <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                  Watch as the interface adapts in real-time to room mood, energy levels, 
-                  and user presence. Every interaction shapes the visual experience.
+                  Enjoy a clean, modern interface designed for seamless conversations. 
+                  Fast, reliable, and easy to use.
                 </p>
                 <ul className="space-y-3">
                   {[
-                    'Mood-based color adaptation',
-                    'Energy-driven animations',
-                    'Presence-aware UI elements',
-                    'quntam room consciousness',
+                    'Real-time message delivery',
+                    'Secure end-to-end encryption',
+                    'User-friendly interface',
+                    'Fast and responsive',
                   ].map((item, index) => (
                     <li key={index} className="flex items-center gap-3 text-gray-700">
                       <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
@@ -382,9 +372,9 @@ const HomePage = () => {
               <div className="relative">
                 <div className="aspect-square bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-2xl p-8 flex items-center justify-center shadow-inner">
                   <div className="text-center text-white">
-                    <div className="text-6xl mb-4 animate-softPulse">✨</div>
-                    <div className="text-2xl font-bold mb-2">Sentient Mode</div>
-                    <div className="text-sm opacity-90">Adaptive & Alive</div>
+                    <div className="text-6xl mb-4 animate-softPulse">💬</div>
+                    <div className="text-2xl font-bold mb-2">Chat Mode</div>
+                    <div className="text-sm opacity-90">Fast & Secure</div>
                   </div>
                 </div>
                 <div className="absolute -top-4 -right-4 w-24 h-24 bg-purple-300 rounded-full blur-2xl opacity-50 animate-blob"></div>
@@ -439,7 +429,7 @@ const HomePage = () => {
                 <span className="text-2xl font-bold">D-Lite</span>
               </div>
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Experience messaging reimagined with AI-driven sentient interfaces and quntam consciousness.
+                Experience messaging reimagined with real-time WebSocket technology and secure conversations.
               </p>
               {/* Social Links */}
               <div className="flex gap-4">
