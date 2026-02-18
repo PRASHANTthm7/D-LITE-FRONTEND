@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/',
   server: {
-    port: 5173,
+    port: parseInt(process.env.VITE_PORT || '5173', 10),
   },
   build: {
     outDir: 'dist',
