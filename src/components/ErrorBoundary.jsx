@@ -14,8 +14,15 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     logger.error('React Error Boundary caught error', {
       error: error.toString(),
+      errorMessage: error.message,
+      errorStack: error.stack,
       componentStack: errorInfo.componentStack
     });
+    // Also log to console for easier debugging
+    if (import.meta.env.DEV) {
+      console.error('Error Boundary caught error:', error);
+      console.error('Error Info:', errorInfo);
+    }
   }
 
   render() {
@@ -27,12 +34,21 @@ class ErrorBoundary extends React.Component {
             <p className="text-gray-600 mb-4">
               An unexpected error occurred. Please refresh the page or try again.
             </p>
-            {import.meta.env.DEV && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mb-4">
-                <summary className="cursor-pointer text-sm text-gray-500 mb-2">Error Details</summary>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">
-                  {this.state.error?.toString()}
-                </pre>
+                <summary className="cursor-pointer text-sm text-gray-500 mb-2">Error Details (Dev Mode)</summary>
+                <div className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-60 space-y-2">
+                  <div>
+                    <strong>Error:</strong>
+                    <pre className="mt-1 whitespace-pre-wrap">{this.state.error.toString()}</pre>
+                  </div>
+                  {this.state.error.stack && (
+                    <div>
+                      <strong>Stack:</strong>
+                      <pre className="mt-1 whitespace-pre-wrap text-[10px]">{this.state.error.stack}</pre>
+                    </div>
+                  )}
+                </div>
               </details>
             )}
             <button

@@ -46,6 +46,7 @@ const UsersList = memo(() => {
     let rank = 0
 
     const register = (chatIds) => {
+      if (!chatIds || !Array.isArray(chatIds)) return
       chatIds.forEach((chatId) => {
         const normalizedId = String(chatId)
         if (!normalizedId || map.has(normalizedId)) return
@@ -54,11 +55,12 @@ const UsersList = memo(() => {
       })
     }
 
-    register(prioritizedChats || [])
-    register(recentChats || [])
-    register(frequentChats || [])
+    // Get user IDs from conversations for priority sorting
+    const conversationUserIds = Object.keys(conversations || {})
+    register(conversationUserIds)
+    
     return map
-  }, [prioritizedChats, recentChats, frequentChats])
+  }, [conversations])
 
   const sortUsers = useCallback(
     (leftUser, rightUser) => {
@@ -123,7 +125,7 @@ const UsersList = memo(() => {
     setSearchQuery('')
     setSearchResults([])
     clearHoverSwitchTimeout()
-  }, [clearHoverSwitchTimeout, selectedUserId, setSelectedUser, trackChatAccess])
+  }, [clearHoverSwitchTimeout, selectedUserId, setSelectedUser])
 
   const queueHoverSwitch = useCallback((user) => {
     const userId = getUserId(user)
@@ -225,11 +227,6 @@ const UsersList = memo(() => {
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200/60 bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 placeholder-gray-400 text-sm transition-all ux-touch-target"
           />
         </div>
-        {shouldShowSearch && !searchQuery && users.length > 0 && (
-          <div className="mt-2 text-[11px] text-gray-500 px-1">
-            Searching now can reduce click depth.
-          </div>
-        )}
       </div>
 
       {/* Hover Quick Switch */}

@@ -68,11 +68,17 @@ const ChatPage = () => {
 
         // Fetch conversations first
         const currentUserId = user.id || user._id
-        const conversationsData = await chatAPI.getConversations(currentUserId)
-        setConversations(conversationsData || [])
+        let conversationsData = []
+        try {
+          conversationsData = await chatAPI.getConversations(currentUserId) || []
+        } catch (error) {
+          console.error('Error fetching conversations:', error)
+          conversationsData = []
+        }
+        setConversations(conversationsData)
 
         // Fetch only users from conversations (privacy: don't show all users)
-        const conversationUserIds = (conversationsData || []).map(conv => conv.user_id)
+        const conversationUserIds = conversationsData.map(conv => conv.user_id)
         
         if (conversationUserIds.length > 0) {
           // Fetch user details for conversation partners
