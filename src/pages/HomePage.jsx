@@ -62,7 +62,7 @@ const HomePage = () => {
     },
     {
       icon: '🌊',
-      title: 'Quantum Rooms',
+      title: 'quntam Rooms',
       description: 'Conscious spaces that evolve with group dynamics',
     },
     {
@@ -284,7 +284,7 @@ const HomePage = () => {
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
             Experience messaging reimagined with AI-driven sentient interfaces, 
-            quantum room consciousness, and emotionally adaptive design.
+            quntam room consciousness, and emotionally adaptive design.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {!isAuthenticated && (
@@ -370,7 +370,7 @@ const HomePage = () => {
                     'Mood-based color adaptation',
                     'Energy-driven animations',
                     'Presence-aware UI elements',
-                    'Quantum room consciousness',
+                    'quntam room consciousness',
                   ].map((item, index) => (
                     <li key={index} className="flex items-center gap-3 text-gray-700">
                       <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
@@ -439,7 +439,7 @@ const HomePage = () => {
                 <span className="text-2xl font-bold">D-Lite</span>
               </div>
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Experience messaging reimagined with AI-driven sentient interfaces and quantum consciousness.
+                Experience messaging reimagined with AI-driven sentient interfaces and quntam consciousness.
               </p>
               {/* Social Links */}
               <div className="flex gap-4">

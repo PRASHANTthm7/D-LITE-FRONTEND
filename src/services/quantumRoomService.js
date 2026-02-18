@@ -24,7 +24,7 @@ const quantumRoomService = {
       const response = await api.get(`/aura/${roomId}`)
       return response.data
     } catch (error) {
-      console.error('Quantum room aura error:', error)
+      console.error('quantum room aura error:', error)
       return null
     }
   },
@@ -34,7 +34,7 @@ const quantumRoomService = {
       const response = await api.get(`/soul/${roomId}`)
       return response.data
     } catch (error) {
-      console.error('Quantum room soul error:', error)
+      console.error('quantum room soul error:', error)
       return null
     }
   },
@@ -44,7 +44,7 @@ const quantumRoomService = {
       const response = await api.get(`/insight/${roomId}`)
       return response.data
     } catch (error) {
-      console.error('Quantum energy wave error:', error)
+      console.error('quantum energy wave error:', error)
       return null
     }
   },

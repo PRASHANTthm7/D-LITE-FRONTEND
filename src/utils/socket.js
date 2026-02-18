@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client'
+import logger from './logger'
 
 class SocketManager {
   constructor() {
@@ -11,56 +12,68 @@ class SocketManager {
 
   connect(token) {
     if (this.socket?.connected) {
+      logger.debug('Socket already connected')
       return Promise.resolve()
     }
 
     const SOCKET_URL = import.meta.env.VITE_SOCKET_GATEWAY_URL || 'http://localhost:3002'
 
     return new Promise((resolve, reject) => {
-      this.socket = io(SOCKET_URL, {
-        auth: {
-          token,
-        },
-        transports: ['websocket', 'polling'],
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: this.maxReconnectAttempts,
-      })
+      try {
+        logger.info('Connecting to Socket Gateway', { url: SOCKET_URL })
+        this.socket = io(SOCKET_URL, {
+          auth: { token },
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: this.maxReconnectAttempts,
+          timeout: 20000,
+        })
 
-      this.socket.on('connect', () => {
-        console.log('[Socket] Connected to server')
-        this.isConnected = true
-        this.reconnectAttempts = 0
-        resolve()
-      })
+        this.socket.on('connect', () => {
+          logger.info('Socket connected successfully')
+          this.isConnected = true
+          this.reconnectAttempts = 0
+          resolve()
+        })
 
-      this.socket.on('disconnect', (reason) => {
-        console.log('[Socket] Disconnected:', reason)
-        this.isConnected = false
-        this.cleanupListeners()
-      })
+        this.socket.on('disconnect', (reason) => {
+          logger.warn('Socket disconnected', { reason })
+          this.isConnected = false
+          this.cleanupListeners()
+        })
 
-      this.socket.on('connect_error', (error) => {
-        console.error('[Socket] Connection error:', error)
-        this.reconnectAttempts++
-        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-          reject(error)
-        }
-      })
+        this.socket.on('connect_error', (error) => {
+          logger.warn('Socket connection error', { error: error.message })
+          this.reconnectAttempts++
+          if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            logger.error('Max reconnection attempts reached')
+            reject(error)
+          }
+        })
 
-      this.socket.on('error', (error) => {
-        console.error('[Socket] Error:', error)
-      })
+        this.socket.on('error', (error) => {
+          logger.error('Socket error', { error: error?.message || String(error) })
+        })
+      } catch (error) {
+        logger.error('Failed to initialize socket connection', { error: error.message })
+        reject(error)
+      }
     })
   }
 
   disconnect() {
-    if (this.socket) {
-      this.cleanupListeners()
-      this.socket.disconnect()
-      this.socket = null
-      this.isConnected = false
+    try {
+      if (this.socket) {
+        logger.info('Disconnecting socket')
+        this.cleanupListeners()
+        this.socket.disconnect()
+        this.socket = null
+        this.isConnected = false
+      }
+    } catch (error) {
+      logger.error('Error during socket disconnect', { error: error.message })
     }
   }
 

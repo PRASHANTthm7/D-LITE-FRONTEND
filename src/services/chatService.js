@@ -1,9 +1,13 @@
 import axios from 'axios'
+import logger from '../utils/logger'
+import { handleApiError } from '../utils/apiErrorHandler'
 
 const API_URL = import.meta.env.VITE_CHAT_SERVICE_URL || 'http://localhost:8001'
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000')
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -17,6 +21,15 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Error response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const errorInfo = handleApiError(error, 'Chat Service')
+    return Promise.reject(errorInfo)
+  }
+)
 
 export const chatAPI = {
   // Messages
