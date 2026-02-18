@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./sentient/sentientStyles.css";
 
 /* Custom Scrollbar Styles - Keep minimal CSS for scrollbar */
 @layer utilities {

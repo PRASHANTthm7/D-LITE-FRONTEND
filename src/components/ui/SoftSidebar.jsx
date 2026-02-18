@@ -1,10 +1,7 @@
 import { memo } from 'react'
-import { useSentient } from '../../sentient/SentientProvider'
 
 const SoftSidebar = memo(({ children, onLogout, className = '' }) => {
-  const { focusModeActive } = useSentient()
-
-  const widthClass = focusModeActive ? 'w-72' : 'w-80'
+  const widthClass = 'w-80'
 
   return (
     <div

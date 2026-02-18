@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useChatStore } from '../store/chatStore'
-import { usePresence } from '../contexts/PresenceContext'
 import { socketManager } from '../utils/socket'
 import { chatAPI } from '../services/chatService'
 import { authAPI } from '../services/authService'
@@ -10,9 +9,6 @@ import AppLayout from '../components/layout/AppLayout'
 import UsersList from '../components/UsersList'
 import MessageList from '../components/MessageList'
 import MessageInput from '../components/MessageInput'
-import MoodHeader from '../components/ui/MoodHeader'
-import EnergyIndicator from '../components/ui/EnergyIndicator'
-import AuraAvatar from '../components/ui/AuraAvatar'
 
 const ChatPage = () => {
   const navigate = useNavigate()
@@ -29,7 +25,6 @@ const ChatPage = () => {
     addOnlineUser,
     removeOnlineUser,
   } = useChatStore()
-  const { getPresence } = usePresence()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -155,40 +150,19 @@ const ChatPage = () => {
     )
   }
 
-  const selectedUserPresence = selectedUser ? getPresence(selectedUser.id || selectedUser._id) : null
-
   return (
     <AppLayout
       sidebarContent={<UsersList />}
       chatHeader={
         selectedUser ? (
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <AuraAvatar
-                userId={selectedUser.id || selectedUser._id}
-                avatarUrl={selectedUser.avatarUrl}
-                name={selectedUser.username || selectedUser.name}
-                auraColor={selectedUserPresence?.auraColor}
-                size="md"
-                online={true}
-                heatLevel={selectedUserPresence?.heatLevel}
-              />
-              <div>
-                <div className="font-semibold text-gray-900 text-base">
-                  {selectedUser.username || selectedUser.name}
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  {selectedUserPresence?.state ? (
-                    <span className="text-gray-600">{selectedUserPresence.state}</span>
-                  ) : (
-                    <span className="text-gray-500">Click to view profile</span>
-                  )}
-                </div>
+            <div>
+              <div className="font-semibold text-gray-900 text-base">
+                {selectedUser.username || selectedUser.name}
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <MoodHeader />
-              <EnergyIndicator />
+              <div className="text-xs text-gray-500 mt-0.5">
+                Direct message
+              </div>
             </div>
           </div>
         ) : (
@@ -197,18 +171,11 @@ const ChatPage = () => {
               <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
               <p className="text-xs text-gray-500 mt-0.5">Select a conversation or search for users</p>
             </div>
-            <MoodHeader />
           </div>
         )
       }
       chatContent={<MessageList />}
       chatInput={selectedUser ? <MessageInput /> : null}
-      presenceContent={
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Active Users</h3>
-          {/* Presence list can be added here */}
-        </div>
-      }
       onLogout={logout}
     />
   )

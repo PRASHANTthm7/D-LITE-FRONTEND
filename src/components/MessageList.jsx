@@ -1,19 +1,14 @@
 import { memo } from 'react'
 import { useChatStore } from '../store/chatStore'
 import { useAuthStore } from '../store/authStore'
-import { useSentient } from '../sentient/SentientProvider'
-import { useUXEngine } from '../uxEngine'
 import ChatBubble from './ui/ChatBubble'
 
 const MessageList = memo(() => {
   const { messages, selectedUser } = useChatStore()
   const { user } = useAuthStore()
-  const { currentMood } = useSentient()
-  const { signals } = useUXEngine()
-  const { spacing, focusMode } = signals
 
   const currentUserName = (user?.username || user?.name || '').toLowerCase()
-  const spacingClass = spacing === 'relaxed' ? 'space-y-3' : spacing === 'compact' ? 'space-y-1.5' : 'space-y-2'
+  const spacingClass = 'space-y-2'
 
   if (!selectedUser) {
     return (
@@ -75,24 +70,13 @@ const MessageList = memo(() => {
           message.parent_id
         )
 
-        let attentionType = null
-        if (isMention) {
-          attentionType = 'mention'
-        } else if (isReply) {
-          attentionType = 'reply'
-        } else if (focusMode && !isOwn) {
-          attentionType = 'focus-chat'
-        }
-
         return (
           <ChatBubble
             key={message._id || message.id}
             message={message}
             isOwn={isOwn}
             senderName={!isOwn ? senderName : null}
-            mood={currentMood}
             timestamp={message.timestamp || message.createdAt}
-            attentionType={attentionType}
           />
         )
       })}

@@ -148,7 +148,16 @@ class SocketManager {
 
   offMessage(callback) {
     if (!this.socket) return
-    this.socket.off('receive_message', callback)
+    if (callback) {
+      this.socket.off('receive_message', callback)
+    } else {
+      const existing = this.listeners.get('receive_message')
+      if (existing) {
+        this.socket.off('receive_message', existing)
+      } else {
+        this.socket.off('receive_message')
+      }
+    }
     this.listeners.delete('receive_message')
   }
 
