@@ -33,9 +33,10 @@ api.interceptors.response.use(
 
 export const chatAPI = {
   // Messages
+  // Note: senderId is not sent - backend extracts it from JWT token (auth service)
   sendMessage: async (senderId, receiverId, content, groupId = null, expiresAt = null) => {
     const response = await api.post('/api/messages', {
-      sender_id: senderId,
+      // sender_id is NOT included - backend extracts from authenticated JWT token
       receiver_id: receiverId,
       content,
       group_id: groupId,
@@ -58,17 +59,7 @@ export const chatAPI = {
     return response.data
   },
 
-  // Users
-  getUsers: async () => {
-    const response = await api.get('/api/users')
-    return response.data
-  },
-
-  getUser: async (userId) => {
-    const response = await api.get(`/api/users/${userId}`)
-    return response.data
-  },
-
+  // Conversations
   getConversations: async (userId) => {
     const response = await api.get(`/api/conversations/${userId}`)
     return response.data

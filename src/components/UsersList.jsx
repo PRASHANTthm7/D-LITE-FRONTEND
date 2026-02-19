@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useChatStore } from '../store/chatStore'
 import { authAPI } from '../services/authService'
 import AuraAvatar from './ui/AuraAvatar'
@@ -7,23 +7,13 @@ const getUserId = (user) => String(user?.id || user?._id || '')
 const getUserName = (user) => user?.username || user?.name || 'Unknown User'
 
 const UsersList = memo(() => {
-  const { users, selectedUser, setSelectedUser, onlineUsers, conversations } = useChatStore()
+  const { users, selectedUser, setSelectedUser, setUsers, onlineUsers, conversations } = useChatStore()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
-  const hoverSwitchTimeoutRef = useRef(null)
 
   const selectedUserId = getUserId(selectedUser)
-
-  const clearHoverSwitchTimeout = useCallback(() => {
-    if (hoverSwitchTimeoutRef.current) {
-      clearTimeout(hoverSwitchTimeoutRef.current)
-      hoverSwitchTimeoutRef.current = null
-    }
-  }, [])
-
-  useEffect(() => clearHoverSwitchTimeout, [clearHoverSwitchTimeout])
 
   const isOnline = useCallback(
     (userId) => onlineUsers.has(userId) || onlineUsers.has(String(userId)),
@@ -46,6 +36,7 @@ const UsersList = memo(() => {
     let rank = 0
 
     const register = (chatIds) => {
+      if (!chatIds || !Array.isArray(chatIds)) return
       chatIds.forEach((chatId) => {
         const normalizedId = String(chatId)
         if (!normalizedId || map.has(normalizedId)) return
@@ -54,11 +45,12 @@ const UsersList = memo(() => {
       })
     }
 
-    register(prioritizedChats || [])
-    register(recentChats || [])
-    register(frequentChats || [])
+    // Get user IDs from conversations for priority sorting
+    const conversationUserIds = Object.keys(conversations || {})
+    register(conversationUserIds)
+    
     return map
-  }, [prioritizedChats, recentChats, frequentChats])
+  }, [conversations])
 
   const sortUsers = useCallback(
     (leftUser, rightUser) => {
@@ -117,23 +109,20 @@ const UsersList = memo(() => {
     const userId = getUserId(user)
     if (!userId) return
 
+    // Add user to users list if not already present
+    const userExists = users.some(u => getUserId(u) === userId)
+    
+    if (!userExists) {
+      // Add new user to the list
+      setUsers([...users, user])
+    }
+
     if (selectedUserId !== userId) {
       setSelectedUser(user)
     }
     setSearchQuery('')
     setSearchResults([])
-    clearHoverSwitchTimeout()
-  }, [clearHoverSwitchTimeout, selectedUserId, setSelectedUser, trackChatAccess])
-
-  const queueHoverSwitch = useCallback((user) => {
-    const userId = getUserId(user)
-    if (!userId || userId === selectedUserId) return
-
-    clearHoverSwitchTimeout()
-    hoverSwitchTimeoutRef.current = setTimeout(() => {
-      handleSelectUser(user)
-    }, 450)
-  }, [clearHoverSwitchTimeout, handleSelectUser, selectedUserId])
+  }, [selectedUserId, users, setUsers, setSelectedUser])
 
   const spacingClass = useMemo(() => 'gap-3', [])
 
@@ -153,8 +142,6 @@ const UsersList = memo(() => {
             ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 shadow-sm'
             : 'bg-white/50 hover:bg-white/80 border border-transparent hover:border-gray-200/60 hover:shadow-sm'
         }`}
-        onMouseEnter={() => queueHoverSwitch(user)}
-        onMouseLeave={clearHoverSwitchTimeout}
       >
         <div className="relative flex-shrink-0">
           <AuraAvatar
@@ -225,11 +212,6 @@ const UsersList = memo(() => {
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200/60 bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 placeholder-gray-400 text-sm transition-all ux-touch-target"
           />
         </div>
-        {shouldShowSearch && !searchQuery && users.length > 0 && (
-          <div className="mt-2 text-[11px] text-gray-500 px-1">
-            Searching now can reduce click depth.
-          </div>
-        )}
       </div>
 
       {/* Hover Quick Switch */}
@@ -246,8 +228,6 @@ const UsersList = memo(() => {
                   key={userId}
                   type="button"
                   onClick={() => handleSelectUser(user)}
-                  onMouseEnter={() => queueHoverSwitch(user)}
-                  onMouseLeave={clearHoverSwitchTimeout}
                   className="px-2.5 py-1.5 rounded-lg bg-white/80 hover:bg-white border border-indigo-100 text-xs text-gray-700 transition-all ux-touch-target"
                 >
                   {getUserName(user)}
