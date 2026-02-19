@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ChatPage from './pages/ChatPage'
 import DashboardPage from './pages/DashboardPage'
+import NotFoundPage from './pages/NotFoundPage'
 import './index.css'
 
 function App() {
@@ -52,6 +53,11 @@ function App() {
           <Route 
             path="/chat" 
             element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />} 
+          />
+          {/* Catch-all route for 404 - redirects to previous page */}
+          <Route 
+            path="*" 
+            element={<NotFoundPage />} 
           />
         </Routes>
       </Router>

@@ -63,7 +63,7 @@ const ChatPage = () => {
           },
         })
 
-        // Setup message listener
+        // Setup message listener for real-time messaging
         socketManager.onMessage(async (receivedMessage) => {
           const currentUserId = user.id || user._id
           // Always get current state from store to avoid stale closures
@@ -75,8 +75,10 @@ const ChatPage = () => {
           
           // Check if message is for group or private chat
           const isGroupMessage = !!receivedMessage.group_id
+          const messageSenderId = receivedMessage.sender_id || receivedMessage.senderId
+          const messageReceiverId = receivedMessage.receiver_id || receivedMessage.receiverId
           
-          // Only add message if it's for the currently selected conversation
+          // Determine if this message is for the current conversation
           let isForCurrentConversation = false
           
           if (isGroupMessage) {
@@ -84,28 +86,63 @@ const ChatPage = () => {
             isForCurrentConversation = receivedMessage.group_id === selectedGroupId
           } else {
             // For private messages: check if it's between current user and selected user
+            // Message can be from current user (sent by them) or to current user (received by them)
             isForCurrentConversation = 
-              (receivedMessage.receiver_id === currentUserId && receivedMessage.sender_id === selectedUserId) ||
-              (receivedMessage.sender_id === currentUserId && receivedMessage.receiver_id === selectedUserId)
+              (messageReceiverId === currentUserId && messageSenderId === selectedUserId) ||
+              (messageSenderId === currentUserId && messageReceiverId === selectedUserId)
           }
           
-          // Add message if it's for current conversation or if no conversation is selected (for notifications)
+          // Always add message if it's for current conversation
+          // Also add if no conversation is selected (for notifications/badges)
           if (isForCurrentConversation || (!currentSelectedUser && !currentSelectedGroup)) {
             // Check if message already exists (avoid duplicates)
             const { messages } = useChatStore.getState()
             const messageExists = messages.some(
-              msg => (msg._id === receivedMessage._id || msg.id === receivedMessage.id) ||
-                     (msg._id === receivedMessage._id || msg.id === receivedMessage.id)
+              msg => {
+                const msgId = msg._id || msg.id
+                const receivedId = receivedMessage._id || receivedMessage.id
+                // Check by ID
+                if (msgId && receivedId && msgId === receivedId) return true
+                // Check by content and timestamp (for optimistic messages)
+                if (msg.content === receivedMessage.content && 
+                    Math.abs(new Date(msg.timestamp || msg.createdAt).getTime() - 
+                             new Date(receivedMessage.timestamp || receivedMessage.createdAt).getTime()) < 5000) {
+                  return true
+                }
+                return false
+              }
             )
             
             if (!messageExists) {
-              addMessage(receivedMessage)
+              // Replace optimistic message if this is the saved version
+              const { messages: currentMessages, setMessages } = useChatStore.getState()
+              const hasOptimistic = currentMessages.some(
+                msg => msg._id?.startsWith('temp_') && 
+                       msg.content === receivedMessage.content &&
+                       (msg.sender_id === messageSenderId || msg.senderId === messageSenderId)
+              )
+              
+              if (hasOptimistic) {
+                // Replace optimistic message with real one
+                const updatedMessages = currentMessages.map(msg => {
+                  if (msg._id?.startsWith('temp_') && 
+                      msg.content === receivedMessage.content &&
+                      (msg.sender_id === messageSenderId || msg.senderId === messageSenderId)) {
+                    return receivedMessage
+                  }
+                  return msg
+                })
+                setMessages(updatedMessages)
+              } else {
+                // Add new message
+                addMessage(receivedMessage)
+              }
             }
           }
 
           // Refresh conversations to update unread counts if this is a message for us
           // For group messages, all members receive them, so we don't mark as read automatically
-          if (!isGroupMessage && receivedMessage.receiver_id === currentUserId) {
+          if (!isGroupMessage && messageReceiverId === currentUserId) {
             try {
               const conversationsData = await chatAPI.getConversations(currentUserId)
               setConversations(conversationsData || [])

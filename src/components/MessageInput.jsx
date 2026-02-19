@@ -75,14 +75,28 @@ const MessageInput = ({ onSendMessage }) => {
         groupId
       )
 
-      // Replace optimistic message with saved message from database
-      const { messages, setMessages } = useChatStore.getState()
-      const updatedMessages = messages.map(msg => 
-        msg._id === optimisticMessage._id || msg.id === optimisticMessage.id
-          ? { ...savedMessage, _id: savedMessage._id || savedMessage.id, id: savedMessage.id || savedMessage._id }
-          : msg
-      )
-      setMessages(updatedMessages)
+      // Note: The optimistic message will be replaced by the real message
+      // when it arrives via WebSocket (receive_message event)
+      // This ensures both sender and receiver see the same message in real-time
+      
+      // If WebSocket message doesn't arrive, replace optimistic message with saved one
+      // This is a fallback for cases where WebSocket might be delayed
+      setTimeout(() => {
+        const { messages: currentMessages, setMessages } = useChatStore.getState()
+        const stillHasOptimistic = currentMessages.some(
+          msg => (msg._id === optimisticMessage._id || msg.id === optimisticMessage.id) &&
+                 msg._id?.startsWith('temp_')
+        )
+        
+        if (stillHasOptimistic && savedMessage) {
+          const updatedMessages = currentMessages.map(msg => 
+            msg._id === optimisticMessage._id || msg.id === optimisticMessage.id
+              ? { ...savedMessage, _id: savedMessage._id || savedMessage.id, id: savedMessage.id || savedMessage._id }
+              : msg
+          )
+          setMessages(updatedMessages)
+        }
+      }, 1000) // Wait 1 second for WebSocket message, then fallback to API response
 
       if (onSendMessage) {
         onSendMessage(trimmedMessage)
