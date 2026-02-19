@@ -234,45 +234,45 @@ const ChatPage = () => {
   // Load messages when user or group is selected - ALWAYS load from database
   useEffect(() => {
     const loadMessages = async () => {
-      // Handle group messages
-      if (selectedGroup && user) {
-        try {
-          const groupId = selectedGroup.id || selectedGroup._id
-          
-          if (!groupId) {
-            console.warn('Missing group ID for loading messages')
-            return
-          }
-
-          // Join group room for real-time updates
-          socketManager.joinGroup(groupId)
-
-          // Always fetch messages from database to ensure persistence
-          const data = await chatAPI.getGroupMessages(groupId)
-          
-          // Sort messages by timestamp to ensure correct order
-          const sortedMessages = (data.messages || []).sort((a, b) => {
-            const timeA = new Date(a.timestamp || a.createdAt || 0).getTime()
-            const timeB = new Date(b.timestamp || b.createdAt || 0).getTime()
-            return timeA - timeB
-          })
-          
-          setMessages(sortedMessages)
-        } catch (error) {
-          console.error('Error loading group messages:', error)
-          setMessages([])
-        }
-        return
-      }
-
-      // Handle private messages
-      if (!selectedUser || !user) {
-        // Clear messages if no user selected
-        setMessages([])
-        return
-      }
-
       try {
+        // Handle group messages
+        if (selectedGroup && user) {
+          try {
+            const groupId = selectedGroup.id || selectedGroup._id
+            
+            if (!groupId) {
+              console.warn('Missing group ID for loading messages')
+              return
+            }
+
+            // Join group room for real-time updates
+            socketManager.joinGroup(groupId)
+
+            // Always fetch messages from database to ensure persistence
+            const data = await chatAPI.getGroupMessages(groupId)
+            
+            // Sort messages by timestamp to ensure correct order
+            const sortedMessages = (data.messages || []).sort((a, b) => {
+              const timeA = new Date(a.timestamp || a.createdAt || 0).getTime()
+              const timeB = new Date(b.timestamp || b.createdAt || 0).getTime()
+              return timeA - timeB
+            })
+            
+            setMessages(sortedMessages)
+          } catch (error) {
+            console.error('Error loading group messages:', error)
+            setMessages([])
+          }
+          return
+        }
+
+        // Handle private messages
+        if (!selectedUser || !user) {
+          // Clear messages if no user selected
+          setMessages([])
+          return
+        }
+
         const currentUserId = user.id || user._id
         const selectedUserId = selectedUser.id || selectedUser._id
         
@@ -323,7 +323,16 @@ const ChatPage = () => {
       }
     }
 
-    loadMessages()
+    // Wrap in try-catch to prevent crashes
+    try {
+      loadMessages().catch((error) => {
+        console.error('Unhandled error in loadMessages:', error)
+        setMessages([])
+      })
+    } catch (error) {
+      console.error('Error setting up loadMessages:', error)
+      setMessages([])
+    }
   }, [selectedUser, selectedGroup, user, setMessages, setConversations])
 
   if (loading) {

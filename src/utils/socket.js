@@ -117,6 +117,10 @@ class SocketManager {
           timeout: SERVICE_CONFIG.socket.options.timeout || 20000,
           forceNew: false, // Reuse existing connection if available
           withCredentials: true, // Important for CORS with credentials
+          // Additional options for better connection reliability
+          upgrade: true, // Allow transport upgrades
+          rememberUpgrade: false, // Don't remember upgrade preference
+          autoConnect: true, // Auto-connect on creation
         })
 
         // Connection successful
@@ -161,16 +165,26 @@ class SocketManager {
         // Connection error - only fire once per connection attempt
         connectErrorHandler = (error) => {
           if (hasResolved) return
-          logger.warn('Socket connection error', { error: error.message })
+          logger.warn('Socket connection error', { 
+            error: error.message,
+            type: error.type,
+            description: error.description,
+            url: SOCKET_URL,
+            attempt: this.reconnectAttempts + 1
+          })
           this.reconnectAttempts++
           
           // Only reject after max attempts
           if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             clearTimeout(connectionTimeout)
-            logger.error('Max reconnection attempts reached')
+            logger.error('Max reconnection attempts reached', {
+              attempts: this.reconnectAttempts,
+              url: SOCKET_URL,
+              error: error.message
+            })
             this.connectingPromise = null
             hasResolved = true
-            reject(error)
+            reject(new Error(`Failed to connect to socket server after ${this.reconnectAttempts} attempts: ${error.message || 'Connection failed'}`))
           }
         }
 

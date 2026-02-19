@@ -73,12 +73,28 @@ const DashboardPage = () => {
         }
       } catch (error) {
         console.error('Error loading conversations:', error)
+        // Set empty arrays on error to prevent crashes
+        setConversations([])
+        setUsers([])
       } finally {
         setLoading(false)
       }
     }
 
-    loadConversations()
+    // Wrap in try-catch to prevent crashes
+    try {
+      loadConversations().catch((error) => {
+        console.error('Unhandled error in loadConversations:', error)
+        setLoading(false)
+        setConversations([])
+        setUsers([])
+      })
+    } catch (error) {
+      console.error('Error setting up loadConversations:', error)
+      setLoading(false)
+      setConversations([])
+      setUsers([])
+    }
 
     // Cleanup: Don't disconnect socket (ChatPage might be using it)
     // Socket cleanup should be handled by ChatPage or on logout
@@ -142,8 +158,8 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <AuraAvatar

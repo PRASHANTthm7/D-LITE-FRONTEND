@@ -43,7 +43,7 @@ const ChatBubble = memo(({
         </div>
       )}
       
-      <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[75%] sm:max-w-[70%]`}>
+      <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%] md:max-w-[70%]`}>
         {/* Sender name for received messages */}
         {!isOwn && senderName && (
           <div className="text-xs font-semibold text-gray-600 mb-1 px-1">

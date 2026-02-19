@@ -34,10 +34,19 @@
   body {
     @apply font-sans antialiased overflow-x-hidden overflow-y-auto;
     @apply bg-[#faf9ff] text-gray-800;
+    /* Prevent text selection on mobile for better UX */
+    -webkit-tap-highlight-color: transparent;
+    /* Better touch scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
   }
 
   #root {
     @apply w-full min-h-screen overflow-x-hidden flex flex-col;
+    /* Support for safe area insets on mobile devices */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   /* Smooth transitions with better performance */

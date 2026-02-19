@@ -1,11 +1,11 @@
 import { memo } from 'react'
 
 const SoftSidebar = memo(({ children, onLogout, className = '', focusMode = false }) => {
-  const widthClass = 'w-80'
+  const widthClass = 'w-full sm:w-80 md:w-80'
 
   return (
     <div
-      className={`${widthClass} h-full flex flex-col bg-white/50 backdrop-blur-xl border-r border-gray-200/50 transition-all duration-300 ease-in-out ux-panel ux-panel-sidebar ux-focus-hidden ${className}`}
+      className={`${widthClass} h-full flex flex-col bg-white/50 backdrop-blur-xl border-r border-gray-200/50 transition-all duration-300 ease-in-out ux-panel ux-panel-sidebar ux-focus-hidden ${className} shadow-lg md:shadow-none`}
       style={{
         opacity: focusMode ? 0.95 : 1,
       }}

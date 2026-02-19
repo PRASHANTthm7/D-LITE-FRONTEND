@@ -36,28 +36,52 @@ function App() {
         <Routes>
           <Route 
             path="/" 
-            element={isAuthenticated ? <Navigate to="/dashboard" /> : <HomePage />} 
+            element={
+              <ErrorBoundary>
+                {isAuthenticated ? <Navigate to="/dashboard" /> : <HomePage />}
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/login" 
-            element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />} 
+            element={
+              <ErrorBoundary>
+                {!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />}
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/register" 
-            element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/dashboard" />} 
+            element={
+              <ErrorBoundary>
+                {!isAuthenticated ? <RegisterPage /> : <Navigate to="/dashboard" />}
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/dashboard" 
-            element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />} 
+            element={
+              <ErrorBoundary>
+                {isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />}
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/chat" 
-            element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />} 
+            element={
+              <ErrorBoundary>
+                {isAuthenticated ? <ChatPage /> : <Navigate to="/login" />}
+              </ErrorBoundary>
+            } 
           />
           {/* Catch-all route for 404 - redirects to previous page */}
           <Route 
             path="*" 
-            element={<NotFoundPage />} 
+            element={
+              <ErrorBoundary>
+                <NotFoundPage />
+              </ErrorBoundary>
+            } 
           />
         </Routes>
       </Router>

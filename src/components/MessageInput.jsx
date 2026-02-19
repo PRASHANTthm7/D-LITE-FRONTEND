@@ -183,9 +183,17 @@ const MessageInput = ({ onSendMessage }) => {
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
           className="w-full px-4 py-3 bg-white/95 backdrop-blur-sm border-2 border-gray-200/60 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 text-gray-800 placeholder-gray-400 transition-all duration-300 ease-out shadow-sm hover:shadow-md focus:shadow-lg"
-          style={{ willChange: 'border-color, box-shadow' }}
+          style={{ 
+            willChange: 'border-color, box-shadow',
+            minHeight: '52px', 
+            maxHeight: '160px' 
+          }}
           rows={2}
-          style={{ minHeight: '52px', maxHeight: '160px' }}
+          // Mobile optimizations
+          inputMode="text"
+          autoComplete="off"
+          autoCorrect="on"
+          autoCapitalize="sentences"
         />
         {message.length > 0 && (
           <div className="absolute bottom-2 right-3 text-xs text-gray-400">

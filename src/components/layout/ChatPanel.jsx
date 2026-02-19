@@ -15,7 +15,7 @@ const ChatPanel = memo(({
     >
       {/* Header */}
       {header && (
-        <div className="px-6 py-4 border-b border-gray-200/60 bg-white/60 backdrop-blur-md shadow-sm sticky top-0 z-10">
+        <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200/60 bg-white/60 backdrop-blur-md shadow-sm sticky top-0 z-10">
           {header}
         </div>
       )}
@@ -23,10 +23,10 @@ const ChatPanel = memo(({
       {/* Messages */}
       <div
         className="flex-1 overflow-y-auto custom-scrollbar bg-gradient-to-b from-transparent via-indigo-50/10 to-purple-50/10"
-        style={{ padding: 'calc(1.5rem * var(--ux-spacing-multiplier))' }}
+        style={{ padding: 'calc(1rem * var(--ux-spacing-multiplier))' }}
       >
         <div
-          className="max-w-4xl mx-auto flex flex-col min-h-full justify-end"
+          className="max-w-4xl mx-auto flex flex-col min-h-full justify-end px-2 sm:px-0"
           style={{ gap: 'var(--ux-chat-gap)' }}
         >
           {children}
@@ -36,8 +36,8 @@ const ChatPanel = memo(({
       {/* Input */}
       {input && (
         <div
-          className="px-6 py-4 border-t border-gray-200/60 bg-white/60 backdrop-blur-md shadow-lg sticky bottom-0 z-10 ux-input-container"
-          style={{ paddingTop: 'calc(1rem * var(--ux-spacing-multiplier))' }}
+          className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200/60 bg-white/60 backdrop-blur-md shadow-lg sticky bottom-0 z-10 ux-input-container safe-area-inset-bottom"
+          style={{ paddingTop: 'calc(0.75rem * var(--ux-spacing-multiplier))', paddingBottom: 'max(calc(0.75rem * var(--ux-spacing-multiplier)), env(safe-area-inset-bottom))' }}
         >
           <div className="max-w-4xl mx-auto">
             {input}

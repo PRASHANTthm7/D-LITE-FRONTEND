@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { authAPI } from '../services/authService'
 import { socketManager } from '../utils/socket'
+import { useChatStore } from './chatStore'
 
 // Helper to safely get token from localStorage
 const getStoredToken = () => {
@@ -91,12 +92,11 @@ export const useAuthStore = create((set, get) => {
       socketManager.disconnect()
       
       // Clear chat store data on logout
-      // Import chatStore dynamically to avoid circular dependency
-      import('./chatStore').then((module) => {
-        module.useChatStore.getState().clearAllChatData()
-      }).catch(err => {
+      try {
+        useChatStore.getState().clearAllChatData()
+      } catch (err) {
         console.warn('Could not clear chat store on logout:', err)
-      })
+      }
       
       // Clear state immediately
       set({ 
