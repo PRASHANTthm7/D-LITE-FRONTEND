@@ -16,12 +16,12 @@ const TypingIndicator = memo(({ users = [] }) => {
           />
         </div>
       )}
-      <div className="bg-white border border-gray-200/80 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+      <div className="bg-white border border-gray-200/80 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm animate-fade-in">
         <div className="flex items-center gap-1">
           <div className="flex gap-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1.4s', animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)' }}></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1.4s', animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)' }}></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1.4s', animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)' }}></div>
           </div>
           {users.length > 1 && (
             <span className="text-xs text-gray-500 ml-2">

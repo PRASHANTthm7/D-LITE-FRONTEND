@@ -26,9 +26,10 @@ const ChatBubble = memo(({
   
   return (
     <div
-      className={`flex items-end gap-2 mb-2 transition-all duration-300 px-3 group ${
+      className={`flex items-end gap-2 mb-2 transition-all duration-300 ease-out px-3 group ${
         isOwn ? 'justify-end' : 'justify-start'
       }`}
+      style={{ willChange: 'transform' }}
     >
       {/* Avatar for received messages */}
       {!isOwn && showAvatar && (
@@ -51,11 +52,12 @@ const ChatBubble = memo(({
         )}
         
         <div
-          className={`relative rounded-2xl px-4 py-2.5 shadow-sm transition-all duration-300 transform hover:scale-[1.02] ${
+          className={`relative rounded-2xl px-4 py-2.5 shadow-sm transition-all duration-300 ease-out transform hover:scale-[1.01] ${
             isOwn
               ? 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white rounded-br-md'
               : 'bg-white border border-gray-200/80 text-gray-800 rounded-bl-md shadow-md'
           } ${attentionClass} group-hover:shadow-lg`}
+          style={{ willChange: 'transform, box-shadow' }}
         >
           {/* Message content */}
           <div className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${

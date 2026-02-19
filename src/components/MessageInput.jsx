@@ -157,7 +157,8 @@ const MessageInput = ({ onSendMessage }) => {
     <div className="flex items-end gap-3 px-1">
       {/* Emoji/Attachment button (optional) */}
       <button
-        className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/80 hover:bg-white border border-gray-200/60 flex items-center justify-center transition-all duration-200 hover:shadow-md group"
+        className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/80 hover:bg-white border border-gray-200/60 flex items-center justify-center transition-all duration-300 ease-out hover:shadow-md group transform hover:scale-105 active:scale-95"
+        style={{ willChange: 'transform' }}
         title="Add emoji or attachment"
       >
         <svg 
@@ -181,7 +182,8 @@ const MessageInput = ({ onSendMessage }) => {
           }}
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
-          className="w-full px-4 py-3 bg-white/95 backdrop-blur-sm border-2 border-gray-200/60 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 text-gray-800 placeholder-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:shadow-lg"
+          className="w-full px-4 py-3 bg-white/95 backdrop-blur-sm border-2 border-gray-200/60 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 text-gray-800 placeholder-gray-400 transition-all duration-300 ease-out shadow-sm hover:shadow-md focus:shadow-lg"
+          style={{ willChange: 'border-color, box-shadow' }}
           rows={2}
           style={{ minHeight: '52px', maxHeight: '160px' }}
         />
@@ -195,12 +197,13 @@ const MessageInput = ({ onSendMessage }) => {
       <button
         onClick={handleSend}
         disabled={!message.trim()}
-        className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white rounded-2xl font-medium hover:from-indigo-600 hover:via-indigo-700 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center group"
+        className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white rounded-2xl font-medium hover:from-indigo-600 hover:via-indigo-700 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 ease-out shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center group"
+        style={{ willChange: 'transform, box-shadow' }}
         title="Send message"
       >
         {message.trim() ? (
           <svg 
-            className="w-5 h-5 transform group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform" 
+            className="w-5 h-5 transform group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform duration-300 ease-out" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"

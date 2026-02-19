@@ -8,9 +8,10 @@ const ChatPanel = memo(({
 }) => {
   return (
     <div 
-      className={`flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-gray-50/50 to-white/50 transition-all duration-300 ux-focus-chat ${
+      className={`flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-gray-50/50 to-white/50 transition-all duration-300 ease-out ux-focus-chat ${
         focusMode ? 'opacity-95' : 'opacity-100'
       }`}
+      style={{ willChange: 'opacity' }}
     >
       {/* Header */}
       {header && (

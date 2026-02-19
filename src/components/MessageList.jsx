@@ -93,7 +93,10 @@ const MessageList = memo(() => {
           <div
             key={message._id || message.id}
             className={`animate-slide-up ${isNewMessage ? 'animate-message-send' : ''}`}
-            style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
+            style={{ 
+              animationDelay: `${Math.min(index * 0.02, 0.2)}s`,
+              willChange: 'transform, opacity'
+            }}
           >
             <ChatBubble
               message={message}
