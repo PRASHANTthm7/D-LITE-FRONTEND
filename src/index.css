@@ -1,21 +1,25 @@
 @import "tailwindcss";
 
-/* Custom Scrollbar Styles - Keep minimal CSS for scrollbar */
+/* Custom Scrollbar Styles - Using CSS properties instead of @apply */
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
-    @apply w-2 h-2;
+    width: 0.5rem;
+    height: 0.5rem;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-amber-950/30 rounded;
+    background-color: rgba(15, 10, 30, 0.3);
+    border-radius: 0.25rem;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-amber-500/30 rounded transition-colors;
+    background-color: rgba(245, 158, 11, 0.3);
+    border-radius: 0.25rem;
+    transition: background-color 150ms;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-amber-500/50;
+    background-color: rgba(245, 158, 11, 0.5);
   }
 
   /* Firefox */
@@ -25,15 +29,22 @@
   }
 }
 
-/* Global Styles - Using Tailwind */
+/* Global Styles - Using native CSS */
 @layer base {
   * {
-    @apply m-0 p-0 box-border;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
   body {
-    @apply font-sans antialiased overflow-x-hidden overflow-y-auto;
-    @apply bg-[#0f0a1e] text-amber-50;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #0f0a1e;
+    color: #fffbeb;
     /* Prevent text selection on mobile for better UX */
     -webkit-tap-highlight-color: transparent;
     /* Better touch scrolling on iOS */
@@ -41,7 +52,11 @@
   }
 
   #root {
-    @apply w-full min-h-screen overflow-x-hidden flex flex-col;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
     /* Support for safe area insets on mobile devices */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -51,7 +66,9 @@
 
   /* Smooth transitions with better performance */
   * {
-    @apply transition-colors duration-200 ease-out;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
   }
   
   /* GPU acceleration for animated elements */
@@ -68,15 +85,17 @@
 
   /* Focus styles for accessibility */
   :focus-visible {
-    @apply outline-none ring-2 ring-amber-500 ring-offset-2 ring-offset-gray-950;
+    outline: none;
+    box-shadow: 0 0 0 2px #0f0a1e, 0 0 0 4px #f59e0b;
   }
 
   button:focus-visible {
-    @apply outline-none ring-2 ring-amber-500 ring-offset-2 ring-offset-gray-950;
+    outline: none;
+    box-shadow: 0 0 0 2px #0f0a1e, 0 0 0 4px #f59e0b;
   }
 
   input:focus-visible {
-    @apply outline-none;
+    outline: none;
   }
 }
 
