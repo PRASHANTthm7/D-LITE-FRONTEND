@@ -7,21 +7,21 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-purple-50/30 rounded;
+    @apply bg-amber-950/30 rounded;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-purple-400/20 rounded transition-colors;
+    @apply bg-amber-500/30 rounded transition-colors;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-purple-400/30;
+    @apply bg-amber-500/50;
   }
 
   /* Firefox */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(139, 92, 246, 0.2) rgba(245, 243, 255, 0.3);
+    scrollbar-color: rgba(245, 158, 11, 0.3) rgba(15, 10, 30, 0.3);
   }
 }
 
@@ -33,7 +33,7 @@
 
   body {
     @apply font-sans antialiased overflow-x-hidden overflow-y-auto;
-    @apply bg-[#faf9ff] text-gray-800;
+    @apply bg-[#0f0a1e] text-amber-50;
   }
 
   #root {
@@ -47,11 +47,11 @@
 
   /* Focus styles for accessibility */
   :focus-visible {
-    @apply outline-none ring-2 ring-indigo-500 ring-offset-2 ring-offset-gray-50;
+    @apply outline-none ring-2 ring-amber-500 ring-offset-2 ring-offset-gray-950;
   }
 
   button:focus-visible {
-    @apply outline-none ring-2 ring-indigo-500 ring-offset-2 ring-offset-gray-50;
+    @apply outline-none ring-2 ring-amber-500 ring-offset-2 ring-offset-gray-950;
   }
 
   input:focus-visible {
@@ -94,10 +94,10 @@
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
   }
   50% {
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 40px rgba(249, 115, 22, 0.6);
   }
 }
 
@@ -123,11 +123,11 @@
 
 @keyframes auraGlow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
     opacity: 0.7;
   }
   50% {
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 30px rgba(234, 179, 8, 0.5);
     opacity: 1;
   }
 }

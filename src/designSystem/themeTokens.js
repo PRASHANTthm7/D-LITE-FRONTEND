@@ -36,14 +36,17 @@ export const themeTokens = {
     },
   },
 
-  // Shadows (soft, not harsh)
+  // Shadows (golden glow themed)
   shadows: {
     sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
     md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
     lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
     xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    soft: '0 2px 8px rgba(139, 92, 246, 0.08)',
-    glow: '0 0 20px rgba(139, 92, 246, 0.15)',
+    soft: '0 2px 8px rgba(245, 158, 11, 0.15)',
+    glow: '0 0 20px rgba(245, 158, 11, 0.4)',
+    glowGold: '0 0 30px rgba(245, 158, 11, 0.6)',
+    glowYellow: '0 0 30px rgba(234, 179, 8, 0.6)',
+    glowOrange: '0 0 30px rgba(249, 115, 22, 0.6)',
   },
 
   // Border Radius (rounded, soft edges)

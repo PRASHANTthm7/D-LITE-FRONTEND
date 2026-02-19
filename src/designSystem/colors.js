@@ -1,48 +1,64 @@
 /**
- * Soft Light Color System
- * Eye-soothing, calm, futuristic palette
+ * D-Lite Golden Light Color System
+ * Radiant, warm, energetic palette inspired by light and delight
  */
 
 export const colors = {
-  // Base Palette - Soft & Calm
-  lavender: {
-    50: '#f5f3ff',
-    100: '#ede9fe',
-    200: '#ddd6fe',
-    300: '#c4b5fd',
-    400: '#a78bfa',
-    500: '#8b5cf6',
-    600: '#7c3aed',
-    700: '#6d28d9',
+  // Primary - Radiant Gold/Amber (represents "Light")
+  primary: {
+    50: '#fffbeb',
+    100: '#fef3c7',
+    200: '#fde68a',
+    300: '#fcd34d',
+    400: '#fbbf24',
+    500: '#f59e0b',  // Vibrant golden amber - "D-LITE"
+    600: '#d97706',
+    700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
   },
-  blue: {
-    50: '#eff6ff',
-    100: '#dbeafe',
-    200: '#bfdbfe',
-    300: '#93c5fd',
-    400: '#60a5fa',
-    500: '#3b82f6',
-    600: '#2563eb',
-    700: '#1d4ed8',
+  
+  // Secondary - Electric Yellow (represents energy & delight)
+  secondary: {
+    50: '#fefce8',
+    100: '#fef9c3',
+    200: '#fef08a',
+    300: '#fde047',
+    400: '#facc15',
+    500: '#eab308',  // Bright sunshine yellow
+    600: '#ca8a04',
+    700: '#a16207',
+    800: '#854d0e',
+    900: '#713f12',
   },
-  cyan: {
-    50: '#ecfeff',
-    100: '#cffafe',
-    200: '#a5f3fc',
-    300: '#67e8f9',
-    400: '#22d3ee',
-    500: '#06b6d4',
-    600: '#0891b2',
+
+  // Accent - Warm Orange (sunrise/illumination)
+  accent: {
+    50: '#fff7ed',
+    100: '#ffedd5',
+    200: '#fed7aa',
+    300: '#fdba74',
+    400: '#fb923c',
+    500: '#f97316',  // Vibrant orange glow
+    600: '#ea580c',
+    700: '#c2410c',
+    800: '#9a3412',
+    900: '#7c2d12',
   },
-  violet: {
-    50: '#faf5ff',
-    100: '#f3e8ff',
-    200: '#e9d5ff',
-    300: '#d8b4fe',
-    400: '#c084fc',
-    500: '#a855f7',
-    600: '#9333ea',
+
+  // Additional Color - Lime (for success states)
+  lime: {
+    50: '#f7fee7',
+    100: '#ecfccb',
+    200: '#d9f99d',
+    300: '#bef264',
+    400: '#a3e635',
+    500: '#84cc16',
+    600: '#65a30d',
+    700: '#4d7c0f',
   },
+
+  // Neutral - For balance
   graphite: {
     50: '#f9fafb',
     100: '#f3f4f6',
@@ -58,58 +74,66 @@ export const colors = {
 
   // Semantic Colors
   background: {
-    primary: '#faf9ff',      // Soft off-white (no pure white)
-    secondary: '#f5f3ff',    // Very light lavender
-    tertiary: '#ede9fe',     // Light lavender
-    overlay: 'rgba(250, 249, 255, 0.85)', // Glass effect
+    primary: '#0f0a1e',      // Deep purple-black twilight
+    secondary: '#1a1333',    // Dark purple
+    tertiary: '#251d47',     // Medium purple
+    elevated: '#332861',     // Lighter purple
+    overlay: 'rgba(15, 10, 30, 0.85)', // Glass effect
   },
   
   surface: {
-    primary: 'rgba(255, 255, 255, 0.7)',
-    secondary: 'rgba(255, 255, 255, 0.5)',
-    elevated: 'rgba(255, 255, 255, 0.9)',
-    glass: 'rgba(255, 255, 255, 0.6)',
+    primary: 'rgba(37, 29, 71, 0.7)',
+    secondary: 'rgba(37, 29, 71, 0.5)',
+    elevated: 'rgba(51, 40, 97, 0.9)',
+    glass: 'rgba(37, 29, 71, 0.6)',
   },
 
   text: {
-    primary: '#1f2937',      // Dark graphite
-    secondary: '#4b5563',     // Medium graphite
-    tertiary: '#6b7280',      // Light graphite
-    inverse: '#faf9ff',       // Light text on dark
-    muted: '#9ca3af',         // Very muted
+    primary: '#fef3c7',      // Warm white/cream
+    secondary: '#fde68a',    // Soft golden
+    tertiary: '#cbd5e1',     // Cool gray for balance
+    accent: '#f59e0b',       // Golden highlight
+    muted: '#9ca3af',        // Very muted
   },
 
   border: {
-    light: 'rgba(203, 213, 225, 0.3)',
-    medium: 'rgba(203, 213, 225, 0.5)',
-    subtle: 'rgba(203, 213, 225, 0.2)',
+    light: 'rgba(245, 158, 11, 0.3)',
+    medium: 'rgba(245, 158, 11, 0.5)',
+    subtle: 'rgba(245, 158, 11, 0.2)',
   },
 
-  // Sentient Aura Colors (soft, pastel)
+  // Sentient Aura Colors (warm, glowing)
   aura: {
-    calm: '#a5f3fc',         // Soft cyan
-    focused: '#c4b5fd',      // Soft purple
-    energetic: '#fbbf24',    // Soft amber
-    meditative: '#ddd6fe',    // Very light purple
-    balanced: '#bfdbfe',     // Soft blue
+    calm: '#fbbf24',         // Soft golden
+    focused: '#f59e0b',      // Radiant amber
+    energetic: '#f97316',    // Vibrant orange
+    meditative: '#fde68a',   // Light golden
+    balanced: '#eab308',     // Sunshine yellow
   },
 
-  // Status Colors (muted, not harsh)
+  // Status Colors
   status: {
-    online: '#34d399',       // Soft green
+    online: '#84cc16',       // Lime green
     offline: '#9ca3af',      // Muted gray
-    away: '#fbbf24',         // Soft amber
-    busy: '#f87171',         // Soft red
+    away: '#f59e0b',         // Golden amber
+    busy: '#ef4444',         // Bright red
+    success: '#84cc16',      // Lime green
+    warning: '#f59e0b',      // Golden amber
+    error: '#ef4444',        // Bright red
+    info: '#3b82f6',         // Blue
   },
 }
 
-// Gradient Presets
+// Gradient Presets - "Light" themed
 export const gradients = {
-  primary: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%)',
-  secondary: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%)',
-  sentient: 'linear-gradient(135deg, #faf9ff 0%, #f5f3ff 25%, #ede9fe 50%, #ddd6fe 75%, #c4b5fd 100%)',
-  calm: 'linear-gradient(135deg, #ecfeff 0%, #cffafe 50%, #a5f3fc 100%)',
-  focused: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #e9d5ff 100%)',
+  primary: 'linear-gradient(135deg, #f59e0b 0%, #eab308 100%)',      // Sunrise
+  secondary: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)',    // Golden glow
+  accent: 'linear-gradient(135deg, #fb923c 0%, #fbbf24 100%)',       // Warm light
+  sentient: 'linear-gradient(135deg, #f59e0b 0%, #eab308 50%, #fb923c 100%)', // Full spectrum
+  aurora: 'linear-gradient(135deg, #f59e0b 0%, #eab308 50%, #fb923c 100%)', // Aurora light
+  delight: 'linear-gradient(135deg, #fef3c7 0%, #f59e0b 50%, #f97316 100%)', // "D-LITE" signature
+  calm: 'linear-gradient(135deg, #fbbf24 0%, #fde68a 100%)',
+  focused: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
 }
 
 // Helper function to generate sentient gradient from aura colors

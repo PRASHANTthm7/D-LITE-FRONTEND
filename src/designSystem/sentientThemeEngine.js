@@ -17,15 +17,15 @@ export const getSentientBackground = (sentientState) => {
     return `linear-gradient(135deg, ${backgroundGradient.join(', ')})`
   }
 
-  // Fallback to mood-based gradients
+  // Fallback to mood-based gradients (Golden Light theme)
   const moodGradients = {
-    calm: gradients.calm,
-    focused: gradients.focused,
-    meditative: gradients.calm,
-    balanced: gradients.primary,
-    chaotic: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
-    deep: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%)',
-    funny: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%)',
+    calm: gradients.calm,          // Soft golden gradient
+    focused: gradients.focused,    // Radiant amber gradient
+    meditative: gradients.calm,    // Soft golden (same as calm)
+    balanced: gradients.primary,   // Sunrise gradient
+    chaotic: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #f97316 100%)',  // Energetic gold-to-orange
+    deep: 'linear-gradient(135deg, #78350f 0%, #92400e 50%, #b45309 100%)',     // Deep amber
+    funny: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%)',    // Light golden
   }
 
   return moodGradients[currentMood] || gradients.sentient
