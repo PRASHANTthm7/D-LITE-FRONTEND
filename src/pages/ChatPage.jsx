@@ -9,6 +9,7 @@ import AppLayout from '../components/layout/AppLayout'
 import UsersList from '../components/UsersList'
 import MessageList from '../components/MessageList'
 import MessageInput from '../components/MessageInput'
+import AuraAvatar from '../components/ui/AuraAvatar'
 
 const ChatPage = () => {
   const navigate = useNavigate()
@@ -62,53 +63,57 @@ const ChatPage = () => {
           },
         })
 
-              // Setup message listener
-              socketManager.onMessage(async (receivedMessage) => {
-                const currentUserId = user.id || user._id
-                const selectedUserId = selectedUser?.id || selectedUser?._id
-                const selectedGroupId = selectedGroup?.id || selectedGroup?._id
-                
-                // Check if message is for group or private chat
-                const isGroupMessage = !!receivedMessage.group_id
-                
-                // Only add message if it's for the currently selected conversation
-                let isForCurrentConversation = false
-                
-                if (isGroupMessage) {
-                  // For group messages: check if it's for the currently selected group
-                  isForCurrentConversation = receivedMessage.group_id === selectedGroupId
-                } else {
-                  // For private messages: check if it's between current user and selected user
-                  isForCurrentConversation = 
-                    (receivedMessage.receiver_id === currentUserId && receivedMessage.sender_id === selectedUserId) ||
-                    (receivedMessage.sender_id === currentUserId && receivedMessage.receiver_id === selectedUserId)
-                }
-                
-                // Add message if it's for current conversation or if no conversation is selected (for notifications)
-                if (isForCurrentConversation || (!selectedUser && !selectedGroup)) {
-                  // Check if message already exists (avoid duplicates)
-                  const { messages } = useChatStore.getState()
-                  const messageExists = messages.some(
-                    msg => (msg._id === receivedMessage._id || msg.id === receivedMessage.id) ||
-                           (msg._id === receivedMessage._id || msg.id === receivedMessage.id)
-                  )
-                  
-                  if (!messageExists) {
-                    addMessage(receivedMessage)
-                  }
-                }
+        // Setup message listener
+        socketManager.onMessage(async (receivedMessage) => {
+          const currentUserId = user.id || user._id
+          // Always get current state from store to avoid stale closures
+          const currentState = useChatStore.getState()
+          const currentSelectedUser = currentState.selectedUser
+          const currentSelectedGroup = currentState.selectedGroup
+          const selectedUserId = currentSelectedUser?.id || currentSelectedUser?._id
+          const selectedGroupId = currentSelectedGroup?.id || currentSelectedGroup?._id
+          
+          // Check if message is for group or private chat
+          const isGroupMessage = !!receivedMessage.group_id
+          
+          // Only add message if it's for the currently selected conversation
+          let isForCurrentConversation = false
+          
+          if (isGroupMessage) {
+            // For group messages: check if it's for the currently selected group
+            isForCurrentConversation = receivedMessage.group_id === selectedGroupId
+          } else {
+            // For private messages: check if it's between current user and selected user
+            isForCurrentConversation = 
+              (receivedMessage.receiver_id === currentUserId && receivedMessage.sender_id === selectedUserId) ||
+              (receivedMessage.sender_id === currentUserId && receivedMessage.receiver_id === selectedUserId)
+          }
+          
+          // Add message if it's for current conversation or if no conversation is selected (for notifications)
+          if (isForCurrentConversation || (!currentSelectedUser && !currentSelectedGroup)) {
+            // Check if message already exists (avoid duplicates)
+            const { messages } = useChatStore.getState()
+            const messageExists = messages.some(
+              msg => (msg._id === receivedMessage._id || msg.id === receivedMessage.id) ||
+                     (msg._id === receivedMessage._id || msg.id === receivedMessage.id)
+            )
+            
+            if (!messageExists) {
+              addMessage(receivedMessage)
+            }
+          }
 
-                // Refresh conversations to update unread counts if this is a message for us
-                // For group messages, all members receive them, so we don't mark as read automatically
-                if (!isGroupMessage && receivedMessage.receiver_id === currentUserId) {
-                  try {
-                    const conversationsData = await chatAPI.getConversations(currentUserId)
-                    setConversations(conversationsData || [])
-                  } catch (error) {
-                    console.error('Error refreshing conversations:', error)
-                  }
-                }
-              })
+          // Refresh conversations to update unread counts if this is a message for us
+          // For group messages, all members receive them, so we don't mark as read automatically
+          if (!isGroupMessage && receivedMessage.receiver_id === currentUserId) {
+            try {
+              const conversationsData = await chatAPI.getConversations(currentUserId)
+              setConversations(conversationsData || [])
+            } catch (error) {
+              console.error('Error refreshing conversations:', error)
+            }
+          }
+        })
 
         // Fetch conversations first
         const currentUserId = user.id || user._id
@@ -146,21 +151,27 @@ const ChatPage = () => {
           const existingUser = users.find(u => (u.id || u._id) === selectedUserId)
           if (existingUser) {
             setSelectedUser(existingUser)
+            // Clear the state to avoid re-selecting on re-render
+            navigate(location.pathname, { replace: true, state: {} })
           } else {
             // Fetch user if not in list
-            try {
-              const userData = await authAPI.getUser(selectedUserId)
-              if (userData && userData.user) {
-                const newUser = userData.user
-                setUsers([...users, newUser])
-                setSelectedUser(newUser)
-              }
-            } catch (error) {
-              console.error('Error fetching selected user:', error)
-            }
+            authAPI.getUser(selectedUserId)
+              .then(userData => {
+                if (userData && userData.user) {
+                  const newUser = userData.user
+                  const currentUsers = useChatStore.getState().users
+                  setUsers([...currentUsers, newUser])
+                  setSelectedUser(newUser)
+                }
+                // Clear the state to avoid re-selecting on re-render
+                navigate(location.pathname, { replace: true, state: {} })
+              })
+              .catch(error => {
+                console.error('Error fetching selected user:', error)
+                // Clear the state even on error
+                navigate(location.pathname, { replace: true, state: {} })
+              })
           }
-          // Clear the state to avoid re-selecting on re-render
-          navigate(location.pathname, { replace: true, state: {} })
         }
 
         setLoading(false)
@@ -178,7 +189,10 @@ const ChatPage = () => {
       // Note: Don't disconnect socket here as DashboardPage might need it
       // Socket should only disconnect on logout
     }
-  }, [token, user, navigate, setUsers, setConversations, updateOnlineUsers, addOnlineUser, removeOnlineUser, addMessage, location, selectedUser, selectedGroup])
+    // Note: selectedUser and selectedGroup are intentionally excluded from deps
+    // to prevent infinite re-renders. Message listener uses store.getState() for current values.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, user, navigate, setUsers, setConversations, updateOnlineUsers, addOnlineUser, removeOnlineUser, addMessage, location])
 
   // Load messages when user or group is selected - ALWAYS load from database
   useEffect(() => {
@@ -278,7 +292,10 @@ const ChatPage = () => {
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-50">
-        <div className="text-gray-600">Loading...</div>
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading chat...</p>
+        </div>
       </div>
     )
   }

@@ -2,102 +2,130 @@ import { create } from 'zustand'
 import { authAPI } from '../services/authService'
 import { socketManager } from '../utils/socket'
 
-export const useAuthStore = create((set, get) => ({
-  user: null,
-  token: localStorage.getItem('token') || null,
-  isAuthenticated: !!localStorage.getItem('token'),
-  loading: false,
-  error: null,
+// Helper to safely get token from localStorage
+const getStoredToken = () => {
+  try {
+    return localStorage.getItem('token') || null
+  } catch (error) {
+    console.warn('Error reading token from localStorage:', error)
+    return null
+  }
+}
 
-  login: async (email, password) => {
-    set({ loading: true, error: null })
-    try {
-      const data = await authAPI.login(email, password)
-      localStorage.setItem('token', data.token)
-      
-      // Initialize socket connection with JWT token
+export const useAuthStore = create((set, get) => {
+  const storedToken = getStoredToken()
+  return {
+    user: null,
+    token: storedToken,
+    isAuthenticated: !!storedToken,
+    loading: false,
+    error: null,
+
+    login: async (email, password) => {
+      set({ loading: true, error: null })
       try {
-        await socketManager.connect(data.token)
-        console.log('[Auth] Socket initialized after login')
-      } catch (socketError) {
-        console.warn('[Auth] Socket connection failed, but auth succeeded:', socketError)
+        const data = await authAPI.login(email, password)
+        localStorage.setItem('token', data.token)
+        
+        // Initialize socket connection with JWT token
+        try {
+          await socketManager.connect(data.token)
+          console.log('[Auth] Socket initialized after login')
+        } catch (socketError) {
+          console.warn('[Auth] Socket connection failed, but auth succeeded:', socketError)
+        }
+        
+        set({ 
+          user: data.user, 
+          token: data.token, 
+          isAuthenticated: true, 
+          loading: false,
+          error: null
+        })
+        return data
+      } catch (error) {
+        set({ 
+          loading: false, 
+          error: error.response?.data?.message || 'Login failed' 
+        })
+        throw error
       }
+    },
+
+    register: async (username, email, password) => {
+      set({ loading: true, error: null })
+      try {
+        const data = await authAPI.register(username, email, password)
+        localStorage.setItem('token', data.token)
+        
+        // Initialize socket connection with JWT token
+        try {
+          await socketManager.connect(data.token)
+          console.log('[Auth] Socket initialized after registration')
+        } catch (socketError) {
+          console.warn('[Auth] Socket connection failed, but registration succeeded:', socketError)
+        }
+        
+        set({ 
+          user: data.user, 
+          token: data.token, 
+          isAuthenticated: true, 
+          loading: false,
+          error: null
+        })
+        return data
+      } catch (error) {
+        set({ 
+          loading: false, 
+          error: error.response?.data?.message || 'Registration failed' 
+        })
+        throw error
+      }
+    },
+
+    logout: () => {
+      // Clear localStorage FIRST (synchronously) to prevent restore on refresh
+      localStorage.removeItem('token')
       
+      // Disconnect socket before clearing state
+      socketManager.disconnect()
+      
+      // Clear chat store data on logout
+      // Import chatStore dynamically to avoid circular dependency
+      import('./chatStore').then((module) => {
+        module.useChatStore.getState().clearAllChatData()
+      }).catch(err => {
+        console.warn('Could not clear chat store on logout:', err)
+      })
+      
+      // Clear state immediately
       set({ 
-        user: data.user, 
-        token: data.token, 
-        isAuthenticated: true, 
-        loading: false,
+        user: null, 
+        token: null, 
+        isAuthenticated: false,
         error: null
       })
-      return data
-    } catch (error) {
-      set({ 
-        loading: false, 
-        error: error.response?.data?.message || 'Login failed' 
-      })
-      throw error
-    }
-  },
-
-  register: async (username, email, password) => {
-    set({ loading: true, error: null })
-    try {
-      const data = await authAPI.register(username, email, password)
-      localStorage.setItem('token', data.token)
       
-      // Initialize socket connection with JWT token
-      try {
-        await socketManager.connect(data.token)
-        console.log('[Auth] Socket initialized after registration')
-      } catch (socketError) {
-        console.warn('[Auth] Socket connection failed, but registration succeeded:', socketError)
+      // Force a page reload to ensure clean state
+      // This prevents any race conditions or stale state
+      window.location.href = '/'
+    },
+
+    clearError: () => set({ error: null }),
+
+    // Initialize user from token
+    initAuth: async () => {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        // Explicitly set unauthenticated state if no token
+        set({ 
+          user: null, 
+          token: null, 
+          isAuthenticated: false 
+        })
+        return
       }
       
-      set({ 
-        user: data.user, 
-        token: data.token, 
-        isAuthenticated: true, 
-        loading: false,
-        error: null
-      })
-      return data
-    } catch (error) {
-      set({ 
-        loading: false, 
-        error: error.response?.data?.message || 'Registration failed' 
-      })
-      throw error
-    }
-  },
-
-  logout: () => {
-    // Disconnect socket before logout
-    socketManager.disconnect()
-    localStorage.removeItem('token')
-    
-    // Clear chat store data on logout
-    // Import chatStore dynamically to avoid circular dependency
-    import('./chatStore').then((module) => {
-      module.useChatStore.getState().clearAllChatData()
-    }).catch(err => {
-      console.warn('Could not clear chat store on logout:', err)
-    })
-    
-    set({ 
-      user: null, 
-      token: null, 
-      isAuthenticated: false,
-      error: null
-    })
-  },
-
-  clearError: () => set({ error: null }),
-
-  // Initialize user from token
-  initAuth: async () => {
-    const token = localStorage.getItem('token')
-    if (token) {
       try {
         const data = await authAPI.verifyToken()
         set({ 
@@ -112,6 +140,7 @@ export const useAuthStore = create((set, get) => ({
           console.warn('[Auth] Socket connection failed on init:', error)
         }
       } catch (error) {
+        // Token is invalid or expired - clear everything
         localStorage.removeItem('token')
         set({ 
           user: null, 
@@ -121,4 +150,4 @@ export const useAuthStore = create((set, get) => ({
       }
     }
   }
-}))
+})
