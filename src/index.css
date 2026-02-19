@@ -33,15 +33,11 @@
 
   body {
     @apply font-sans antialiased overflow-x-hidden overflow-y-auto;
-<<<<<<< HEAD
     @apply bg-[#0f0a1e] text-amber-50;
-=======
-    @apply bg-[#faf9ff] text-gray-800;
     /* Prevent text selection on mobile for better UX */
     -webkit-tap-highlight-color: transparent;
     /* Better touch scrolling on iOS */
     -webkit-overflow-scrolling: touch;
->>>>>>> 7d8b0c984eef67302c59b85a4c73c900fc7b8282
   }
 
   #root {
