@@ -101,6 +101,13 @@ export const chatAPI = {
     const response = await api.delete(`/api/groups/${groupId}/members/${userId}`)
     return response.data
   },
+
+  bulkDeleteMessages: async (messageIds) => {
+    const response = await api.post('/api/messages/bulk-delete', {
+      message_ids: messageIds,
+    })
+    return response.data
+  },
 }
 
 export default chatAPI

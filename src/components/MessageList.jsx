@@ -1,14 +1,64 @@
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useRef, useCallback } from 'react'
 import { useChatStore } from '../store/chatStore'
 import { useAuthStore } from '../store/authStore'
 import ChatBubble from './ui/ChatBubble'
 import TypingIndicator from './TypingIndicator'
+import BurningMessage from './ui/BurningMessage'
+import { chatAPI } from '../services/chatService'
+import { socketManager } from '../utils/socket'
 
 const MessageList = memo(() => {
-  const { messages, selectedUser, typingUsers } = useChatStore()
+  const {
+    messages,
+    selectedUser,
+    selectedGroup,
+    typingUsers,
+    burningMessageIds,
+    setBurningMessages,
+    removeMessages
+  } = useChatStore()
   const { user } = useAuthStore()
   const messagesEndRef = useRef(null)
   const containerRef = useRef(null)
+
+  // Socket listener for bulk deletion from other clients
+  useEffect(() => {
+    socketManager.onMessagesBulkDeleted(({ message_ids }) => {
+      // Trigger local burn animation for these messages
+      setBurningMessages(message_ids, true)
+    })
+    return () => socketManager.offMessagesBulkDeleted()
+  }, [setBurningMessages])
+
+  const handleBurnComplete = useCallback(async (messageId) => {
+    // Only the owner of the burn (who initiated) should call the API
+    // However, if we're just syncing visuals, we don't call the API
+    // Actually, simple way: check if it was truly deleted after animation
+    removeMessages([messageId])
+    setBurningMessages([messageId], false)
+  }, [removeMessages, setBurningMessages])
+
+  // Helper to trigger burn from UI (e.g. for testing or a "delete all" button)
+  const triggerBurn = useCallback(async (selectedIds) => {
+    if (!selectedIds.length) return
+
+    // 1. Start local animation
+    setBurningMessages(selectedIds, true)
+
+    try {
+      // 2. Call backend
+      await chatAPI.bulkDeleteMessages(selectedIds)
+
+      // 3. Notify via socket
+      const receiverId = selectedUser?.id || selectedUser?._id
+      const groupId = selectedGroup?.id || selectedGroup?._id
+      socketManager.bulkDeleteMessages(selectedIds, receiverId, groupId)
+    } catch (error) {
+      console.error('Failed to burn messages:', error)
+      // Revert if failed?
+      setBurningMessages(selectedIds, false)
+    }
+  }, [selectedUser, selectedGroup, setBurningMessages])
 
   const currentUserName = (user?.username || user?.name || '').toLowerCase()
 
@@ -26,7 +76,16 @@ const MessageList = memo(() => {
     }
   }, [selectedUser])
 
-  if (!selectedUser) {
+  // (Optional) Exposure for testing bonfire
+  useEffect(() => {
+    window.triggerBurn = triggerBurn
+    window.triggerBonfire = () => {
+      const recentIds = messages.slice(-5).map(m => m._id || m.id)
+      triggerBurn(recentIds)
+    }
+  }, [messages, triggerBurn])
+
+  if (!selectedUser && !selectedGroup) {
     return (
       <div className="flex items-center justify-center h-full bg-gradient-to-br from-indigo-50/30 via-purple-50/20 to-pink-50/30">
         <div className="text-center max-w-md px-6 animate-fade-in">
@@ -70,8 +129,8 @@ const MessageList = memo(() => {
     <div className="space-y-1 pb-2">
       {messages.map((message, index) => {
         const isOwn = (message.sender_id || message.senderId) === (user?.id || user?._id)
-        const senderName = isOwn 
-          ? 'You' 
+        const senderName = isOwn
+          ? 'You'
           : selectedUser?.username || selectedUser?.name || 'Unknown'
         const messageContent = String(message.content || message.text || '')
         const normalizedContent = messageContent.toLowerCase()
@@ -93,19 +152,36 @@ const MessageList = memo(() => {
           <div
             key={message._id || message.id}
             className={`animate-slide-up ${isNewMessage ? 'animate-message-send' : ''}`}
-            style={{ 
+            style={{
               animationDelay: `${Math.min(index * 0.02, 0.2)}s`,
               willChange: 'transform, opacity'
             }}
           >
-            <ChatBubble
-              message={message}
-              isOwn={isOwn}
-              senderName={!isOwn ? senderName : null}
-              timestamp={message.timestamp || message.createdAt}
-              attentionType={isMention ? 'mention' : isReply ? 'reply' : null}
-              showAvatar={!isOwn}
-            />
+            {burningMessageIds.has(message._id || message.id) ? (
+              <BurningMessage
+                isOwn={isOwn}
+                fireIntensity={burningMessageIds.size > 3 ? 2 : 1.2}
+                onBurnComplete={() => handleBurnComplete(message._id || message.id)}
+              >
+                <ChatBubble
+                  message={message}
+                  isOwn={isOwn}
+                  senderName={!isOwn ? senderName : null}
+                  timestamp={message.timestamp || message.createdAt}
+                  attentionType={isMention ? 'mention' : isReply ? 'reply' : null}
+                  showAvatar={!isOwn}
+                />
+              </BurningMessage>
+            ) : (
+              <ChatBubble
+                message={message}
+                isOwn={isOwn}
+                senderName={!isOwn ? senderName : null}
+                timestamp={message.timestamp || message.createdAt}
+                attentionType={isMention ? 'mention' : isReply ? 'reply' : null}
+                showAvatar={!isOwn}
+              />
+            )}
           </div>
         )
       })}

@@ -44,13 +44,13 @@ class SocketManager {
       // If decode fails, continue with original URL
       logger.warn('Failed to decode URL, using as-is', { url: SOCKET_URL });
     }
-    
+
     // Remove all commas, spaces, URL-encoded characters, and trailing slashes
     SOCKET_URL = SOCKET_URL.trim()
       .replace(/[,\s%]+/g, '') // Remove commas, spaces, and % characters
       .replace(/%[0-9A-Fa-f]{2}/g, '') // Remove any remaining URL-encoded sequences
       .replace(/\/+$/, '') // Remove trailing slashes
-    
+
     // Extract just the domain part (remove any path that might have been incorrectly included)
     // Match: protocol://domain:port or protocol://domain
     const urlMatch = SOCKET_URL.match(/^(https?:\/\/)?([^\/\s,]+)/);
@@ -59,23 +59,23 @@ class SocketManager {
       const domain = urlMatch[2];
       SOCKET_URL = protocol + domain;
     }
-    
+
     // Ensure URL has a protocol (fallback if envValidator didn't add it)
     if (!SOCKET_URL.match(/^https?:\/\//)) {
       // If no protocol, determine based on environment
-      const isProduction = typeof window !== 'undefined' && window.location.protocol === 'https:' || 
-                          import.meta.env.PROD || 
-                          SOCKET_URL.includes('railway.app') ||
-                          SOCKET_URL.includes('netlify.app') ||
-                          SOCKET_URL.includes('vercel.app') ||
-                          SOCKET_URL.includes('render.com')
+      const isProduction = typeof window !== 'undefined' && window.location.protocol === 'https:' ||
+        import.meta.env.PROD ||
+        SOCKET_URL.includes('railway.app') ||
+        SOCKET_URL.includes('netlify.app') ||
+        SOCKET_URL.includes('vercel.app') ||
+        SOCKET_URL.includes('render.com')
       SOCKET_URL = `${isProduction ? 'https://' : 'http://'}${SOCKET_URL}`
     }
 
     // Log the normalized URL for debugging
-    logger.info('Socket Gateway URL normalized', { 
-      original: SERVICE_CONFIG.socket.baseURL, 
-      normalized: SOCKET_URL 
+    logger.info('Socket Gateway URL normalized', {
+      original: SERVICE_CONFIG.socket.baseURL,
+      normalized: SOCKET_URL
     })
 
     // Create connection promise with timeout
@@ -106,7 +106,7 @@ class SocketManager {
         }
 
         logger.info('Connecting to Socket Gateway', { url: SOCKET_URL, hasToken: !!token, tokenLength: token?.length })
-        
+
         // Disable socket.io's automatic reconnection during initial connection
         // We'll handle reconnection manually
         this.socket = io(SOCKET_URL, {
@@ -132,40 +132,40 @@ class SocketManager {
           this.reconnectAttempts = 0
           this.connectingPromise = null
           hasResolved = true
-          
+
           // Re-enable reconnection after successful connection
           this.socket.io.reconnection(true)
           this.socket.io.reconnectionAttempts(this.maxReconnectAttempts)
           this.socket.io.reconnectionDelay(SERVICE_CONFIG.socket.options.reconnectionDelay || 1000)
           this.socket.io.reconnectionDelayMax(SERVICE_CONFIG.socket.options.reconnectionDelayMax || 5000)
-          
+
           // Handle reconnection events
           this.socket.on('reconnect', (attemptNumber) => {
             logger.info('Socket reconnected', { attemptNumber })
             this.isConnected = true
             this.reconnectAttempts = 0
           })
-          
+
           this.socket.on('reconnect_attempt', (attemptNumber) => {
             logger.debug('Socket reconnection attempt', { attemptNumber })
           })
-          
+
           this.socket.on('reconnect_error', (error) => {
             logger.warn('Socket reconnection error', { error: error.message })
           })
-          
+
           this.socket.on('reconnect_failed', () => {
             logger.error('Socket reconnection failed - max attempts reached')
             this.isConnected = false
           })
-          
+
           resolve()
         }
 
         // Connection error - only fire once per connection attempt
         connectErrorHandler = (error) => {
           if (hasResolved) return
-          logger.warn('Socket connection error', { 
+          logger.warn('Socket connection error', {
             error: error.message,
             type: error.type,
             description: error.description,
@@ -173,7 +173,7 @@ class SocketManager {
             attempt: this.reconnectAttempts + 1
           })
           this.reconnectAttempts++
-          
+
           // Only reject after max attempts
           if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             clearTimeout(connectionTimeout)
@@ -348,6 +348,16 @@ class SocketManager {
     this.listeners.delete('receive_message')
   }
 
+  onMessagesBulkDeleted(callback) {
+    if (!this.socket) return
+    this.socket.on('messages_bulk_deleted', callback)
+  }
+
+  offMessagesBulkDeleted() {
+    if (!this.socket) return
+    this.socket.off('messages_bulk_deleted')
+  }
+
   // Send message
   sendMessage(messageData) {
     if (!this.socket || !this.socket.connected) {
@@ -379,6 +389,15 @@ class SocketManager {
     if (!this.socket || !this.socket.connected) return
     const data = groupId ? { group_id: groupId } : { receiver_id: userId }
     this.socket.emit('stop_typing', data)
+  }
+
+  bulkDeleteMessages(messageIds, receiverId = null, groupId = null) {
+    if (!this.socket || !this.socket.connected) return
+    this.socket.emit('bulk_delete_messages', {
+      message_ids: messageIds,
+      receiver_id: receiverId,
+      group_id: groupId
+    })
   }
 
   // Cleanup all listeners

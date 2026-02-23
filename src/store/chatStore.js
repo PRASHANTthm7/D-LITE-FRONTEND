@@ -11,9 +11,27 @@ export const useChatStore = create((set, get) => ({
   onlineUsers: new Set(),
   conversations: {}, // Map of userId -> {unread_count, last_message}
   typingUsers: [], // Array of users currently typing
+  burningMessageIds: new Set(), // Set of message IDs currently in "burn" animation
 
   setUsers: (users) => set({ users }),
   setGroups: (groups) => set({ groups }),
+
+  setBurningMessages: (messageIds, isBurning) => {
+    set((state) => {
+      const newSet = new Set(state.burningMessageIds)
+      messageIds.forEach(id => {
+        if (isBurning) newSet.add(id)
+        else newSet.delete(id)
+      })
+      return { burningMessageIds: newSet }
+    })
+  },
+
+  removeMessages: (messageIds) => {
+    set((state) => ({
+      messages: state.messages.filter(msg => !messageIds.includes(msg._id || msg.id))
+    }))
+  },
 
   setConversations: (conversations) => {
     // Convert array to map for easy lookup
@@ -95,7 +113,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   setTypingUsers: (users) => set({ typingUsers: users }),
-  
+
   addTypingUser: (user) => {
     set((state) => {
       const exists = state.typingUsers.some(u => (u.id || u._id) === (user.id || user._id))
